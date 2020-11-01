@@ -2,6 +2,7 @@ const express = require('express');
 const compression = require('compression');
 const methodOverride = require('method-override');
 var cors = require('cors');
+
 module.exports = function () {
     const app = express();
 
@@ -17,8 +18,10 @@ module.exports = function () {
     // app.use(express.static(process.cwd() + '/public'));
 
     /* App (Android, iOS) */
+    require('../src/app/routes/testRoute')(app);
     require('../src/app/routes/indexRoute')(app);
     require('../src/app/routes/userRoute')(app);
+    require('../src/app/routes/boardRoute')(app);
 
     /* Web */
     // require('../src/web/routes/indexRoute')(app);
