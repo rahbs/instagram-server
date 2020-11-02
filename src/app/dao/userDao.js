@@ -4,8 +4,8 @@ const { pool } = require("../../../config/database");
 async function userEmailCheck(email) {
   const connection = await pool.getConnection(async (conn) => conn);
   const selectEmailQuery = `
-                SELECT email, nickname 
-                FROM UserInfo 
+                SELECT userIdx
+                FROM userInfo 
                 WHERE email = ?;
                 `;
   const selectEmailParams = [email];
@@ -18,12 +18,12 @@ async function userEmailCheck(email) {
   return emailRows;
 }
 
-async function userNicknameCheck(nickname) {
+async function userIdCheck(nickname) {
   const connection = await pool.getConnection(async (conn) => conn);
   const selectNicknameQuery = `
-                SELECT email, nickname 
-                FROM UserInfo 
-                WHERE nickname = ?;
+                SELECT userIdx
+                FROM userInfo 
+                WHERE userId = ?;
                 `;
   const selectNicknameParams = [nickname];
   const [nicknameRows] = await connection.query(
@@ -37,8 +37,8 @@ async function userNicknameCheck(nickname) {
 async function insertUserInfo(insertUserInfoParams) {
   const connection = await pool.getConnection(async (conn) => conn);
   const insertUserInfoQuery = `
-        INSERT INTO UserInfo(email, pswd, nickname)
-        VALUES (?, ?, ?);
+        INSERT INTO userInfo(userId, password, userName, email, phoneNum)
+        VALUES (?, ?, ?, ?, ?);
     `;
   const insertUserInfoRow = await connection.query(
     insertUserInfoQuery,
@@ -67,7 +67,7 @@ async function selectUserInfo(email) {
 
 module.exports = {
   userEmailCheck,
-  userNicknameCheck,
+  userIdCheck,
   insertUserInfo,
   selectUserInfo,
 };

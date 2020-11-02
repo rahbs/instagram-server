@@ -13,7 +13,7 @@ const { constants } = require('buffer');
  update : 2020.10.4
  01.signUp API = 회원가입
  */
-exports.signUp = async function (req, res) {
+exports.signUpTemplate = async function (req, res) {
     const {
         email, password, nickname
     } = req.body;
@@ -90,6 +90,73 @@ exports.signUp = async function (req, res) {
     }
 };
 
+exports.signUp = async function (req, res) {
+    const {
+        id, name, password, email, phoneNum
+    } = req.body;
+    if (!id) return res.json({isSuccess: false, code: 300, message: "id를 입력해 주세요"});
+    if (!name) return res.json({isSuccess: false, code: 301, message: "name을 입력해 주세요"});
+    if (!password) return res.json({isSuccess: false, code: 302, message: "password를 입력해 주세요"});
+    if (!phoneNum && !email) return res.json({isSuccess: false, code: 303, message: "email과 phoneNum 중 하나는 입력해주세요"});
+    if (email.length > 30) return res.json({
+        isSuccess: false,
+        code: 304,
+        message: "이메일은 30자리 미만으로 입력해주세요"
+    });
+    if (!regexEmail.test(email)) return res.json({isSuccess: false, code: 305, message: "올바르지 않은 email 형식입니다"});
+
+    if (password.length < 6 || password.length > 20) return res.json({
+        isSuccess: false,
+        code: 306,
+        message: "비밀번호는 6~20자리를 입력해주세요"
+    });
+
+    try {
+        try {
+            // 이메일 중복 확인
+            const emailRows = await userDao.userEmailCheck(email);
+            if (emailRows.length > 0) {
+
+                return res.json({
+                    isSuccess: false,
+                    code: 400,
+                    message: "중복된 email입니다"
+                });
+            }
+            // id 중복 확인
+            const idRows = await userDao.userIdCheck(id);
+            if (idRows.length > 0) {
+                return res.json({
+                    isSuccess: false,
+                    code: 401,
+                    message: "중복된 id입니다"
+                });
+            }
+            // TRANSACTION : advanced
+            // await connection.beginTransaction(); // START TRANSACTION
+            const hashedPassword = await crypto.createHash('sha512').update(password).digest('hex');
+            const insertUserInfoParams = [id, hashedPassword, name, email, phoneNum];
+
+            const insertUserRows = await userDao.insertUserInfo(insertUserInfoParams);
+
+            //  await connection.commit(); // COMMIT
+            // connection.release();
+            return res.json({
+                isSuccess: true,
+                code: 200,
+                message: "회원가입 성공"
+            });
+        } catch (err) {
+            // await connection.rollback(); // ROLLBACK
+            // connection.release();
+            logger.error(`App - SignUp Query error\n: ${err.message}`);
+            return res.status(500).send(`Error: ${err.message}`);
+        }
+    } catch (err) {
+        logger.error(`App - SignUp DB Connection error\n: ${err.message}`);
+        return res.status(500).send(`Error: ${err.message}`);
+    }
+};
 /**
  update : 2020.10.4
  02.signIn API = 로그인

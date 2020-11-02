@@ -21,12 +21,11 @@ exports.default = async function (req, res) {
 };
 
 exports.test = async function (req, res) {
-
-    console.log('test')
+    console.log('test서버 ');
     return res.status(200).json({
         isSuccess:true,
         code: 200,
-        message: 'test 성공'
-    });;
+        message: 'test 서버 test성공'
+    });
 
 };
