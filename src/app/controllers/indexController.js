@@ -19,3 +19,14 @@ exports.default = async function (req, res) {
         return false;
     }
 };
+
+exports.test = async function (req, res) {
+
+    console.log('test')
+    return res.status(200).json({
+        isSuccess:true,
+        code: 200,
+        message: 'test 성공'
+    });;
+
+};
