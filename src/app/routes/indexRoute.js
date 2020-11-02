@@ -4,4 +4,6 @@ module.exports = function(app){
 
     app.get('/app', jwtMiddleware, index.default);
     app.get('/', index.test);
+    app.get('/test', index.test);
+    app.get('/testJWT', jwtMiddleware, index.test);
 };
