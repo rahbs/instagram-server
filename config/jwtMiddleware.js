@@ -21,22 +21,24 @@ const jwtMiddleware = (req, res, next) => {
             })
         }
     );
-
     // if it has failed to verify, it will return an error message
     const onError = (error) => {
         res.status(403).json({
             isSuccess:false,
             code: 403,
-            message:"검증 실패"
+            message:" 사용자 검증 실패"
         });
     };
+
 
     // process the promise
     p.then((verifiedToken)=>{
         //비밀 번호 바꼇을 때 검증 부분 추가 할 곳
         req.verifiedToken = verifiedToken;
+        res.verifiedToken = verifiedToken;  
         next();
     }).catch(onError)
+
 };
 
 module.exports = jwtMiddleware;

@@ -21,7 +21,7 @@ exports.default = async function (req, res) {
 };
 
 exports.test = async function (req, res) {
-    console.log('test 성공')
+    console.log('test 성공');
     return res.status(200).json({
         isSuccess:true,
         code: 200,

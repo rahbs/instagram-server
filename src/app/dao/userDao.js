@@ -17,6 +17,22 @@ async function userEmailCheck(email) {
 
   return emailRows;
 }
+async function getUserIdxbyId(userId){
+  const connection = await pool.getConnection(async (conn) => conn);
+  const selectUserIdxQuery = `
+                SELECT userIdx 
+                FROM userInfo 
+                WHERE userId = ? and isDeleted = 'N';
+                `;
+  const selectUserIdxParams = [userId];
+  const [userIdx] = await connection.query(
+    selectUserIdxQuery,
+    selectUserIdxParams
+  );
+  connection.release();
+
+  return [userIdx];
+}
 
 async function userIdCheck(nickname) {
   const connection = await pool.getConnection(async (conn) => conn);
@@ -64,6 +80,9 @@ async function selectUserInfobyId(id) {
   );
   return [userInfoRows];
 }
+
+
+
 //SignIn
 async function selectUserInfo(email) {
   const connection = await pool.getConnection(async (conn) => conn);
@@ -87,5 +106,5 @@ module.exports = {
   insertUserInfo,
   selectUserInfo,
   selectUserInfobyId,
-
+  getUserIdxbyId,
 };

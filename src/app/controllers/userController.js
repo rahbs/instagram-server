@@ -76,7 +76,10 @@ exports.signUp = async function (req, res) {
         return res.status(500).send(`Error: ${err.message}`);
     }
 };
-
+// exports.getUserInfo = async function (req, res) {
+//     const decodedToken = req.verifiedToken;
+//     decodedToken.id
+// }
 /**
  update : 2020.10.4
  01.signUp API = 회원가입
@@ -157,7 +160,6 @@ exports.signUpTemplate = async function (req, res) {
         return res.status(500).send(`Error: ${err.message}`);
     }
 };
-
 
 /**
  update : 2020.10.4
@@ -261,3 +263,5 @@ exports.check = async function (req, res) {
         info: req.verifiedToken
     })
 };
+
+

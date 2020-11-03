@@ -11,7 +11,7 @@ async function selectBoard(email) {
         selectEmailQuery
     );
     connection.release();
-
+    console.log(boardRows);
     return boardRows;
 }
 
