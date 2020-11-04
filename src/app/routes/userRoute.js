@@ -3,7 +3,7 @@ module.exports = function(app){
     const jwtMiddleware = require('../../../config/jwtMiddleware');
 
     app.route('/app/signUp').post(user.signUpTemplate);
-    app.route('/app/signIn').post(user.signIn);
+    app.route('/signIn').post(user.signIn);
 
     app.get('/check', jwtMiddleware, user.check);
 

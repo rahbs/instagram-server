@@ -197,8 +197,8 @@ exports.signIn = async function (req, res) {
                 });
             }
 
-            //const hashedPassword = await crypto.createHash('sha512').update(password).digest('hex');
-            if (userInfoRows[0].password !== password) {
+            const hashedPassword = await crypto.createHash('sha512').update(password).digest('hex');
+            if (userInfoRows[0].password !== hashedPassword) {
                 connection.release();
                 return res.json({
                     isSuccess: false,
