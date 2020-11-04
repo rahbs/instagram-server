@@ -2,10 +2,10 @@ const mysql = require('mysql2/promise');
 const {logger} = require('./winston');
 
 const pool = mysql.createPool({
-    host: 'softsquared.ci5qh07mzbfo.ap-northeast-2.rds.amazonaws.com',
-    user: 'borah',
-    password: 'qhfk303513',
-    database: 'instagramDB'
+    host: 'instagram-test.cdnx78fhioxj.ap-northeast-2.rds.amazonaws.com',
+    user: 'root',
+    password: '6862454khg',
+    database: 'instagram_test'
 });
 
 module.exports = {
