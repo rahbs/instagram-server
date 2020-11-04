@@ -5,8 +5,8 @@ const jwt = require('jsonwebtoken');
 const regexEmail = require('regex-email');
 const crypto = require('crypto');
 const secret_config = require('../../../config/secret');
-
 const userDao = require('../dao/userDao');
+const error_module = require('../../../modules/error_modules');
 const { constants } = require('buffer');
 
 exports.signUp = async function (req, res) {
@@ -170,17 +170,18 @@ exports.signIn = async function (req, res) {
         phoneNum, password
     } = req.body;
 
-    if (!phoneNum) return res.json({isSuccess: false, code: 301, message: "번호를 입력해주세요."});
+    if (!phoneNum) {
+        let message = error_module.messages(false,320,"번호를 입력해주세요")
+        console.log(message);
+        return res.json({message}); 
+    }
     var regexPhoneNum = /^01(?:0|1|[6-9])(?:\d{3}|\d{4})\d{4}$/;
-    if(!regexPhoneNum.test(phoneNum)) return res.json({
-        isSuccess: false,
-        code: 302,
-        message: "올바른 번호를 입력해주세요"
-    }); 
+    if(!regexPhoneNum.test(phoneNum)) error_module.messages(false,302,"올바른 번호를 입력해주세요");
+     
 
     //if (!regexEmail.test(email)) return res.json({isSuccess: false, code: 303, message: "이메일을 형식을 정확하게 입력해주세요."});
 
-    if (!password) return res.json({isSuccess: false, code: 304, message: "비밀번호를 입력 해주세요."});
+    if (!password) error_module.messages(false,304,"비밀번호를 입력해주세요");
 
     try {
         const connection = await pool.getConnection(async conn => conn);
