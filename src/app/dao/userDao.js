@@ -84,21 +84,21 @@ async function selectUserInfobyId(id) {
 
 
 //SignIn
-async function selectUserInfo(email) {
-  const connection = await pool.getConnection(async (conn) => conn);
-  const selectUserInfoQuery = `
-                SELECT id, email , pswd, nickname, status 
-                FROM UserInfo 
-                WHERE email = ?;
-                `;
+// async function selectUserInfo(email) {
+//   const connection = await pool.getConnection(async (conn) => conn);
+//   const selectUserInfoQuery = `
+//                 SELECT id, email , pswd, nickname, status 
+//                 FROM UserInfo 
+//                 WHERE email = ?;
+//                 `;
 
-  let selectUserInfoParams = [email];
-  const [userInfoRows] = await connection.query(
-    selectUserInfoQuery,
-    selectUserInfoParams
-  );
-  return [userInfoRows];
-}
+//   let selectUserInfoParams = [email];
+//   const [userInfoRows] = await connection.query(
+//     selectUserInfoQuery,
+//     selectUserInfoParams
+//   );
+//   return [userInfoRows];
+// }
 
 module.exports = {
   userEmailCheck,

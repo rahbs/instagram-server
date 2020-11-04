@@ -27,8 +27,6 @@ async function uploadFeed(userIdx, imgUrls, caption) {
         const [getcurrentFeedId] = await connection.query(getCurrentFeedIdQuery);
         const currentFeedId = getcurrentFeedId[0].currentFeedId;
         for (var i in imgUrls){
-            // 여기서 변수 정의 할 필요가 있는지? 왜하는지?
-            //const uploadFeedImg = await connection.query(
                 await connection.query(
                 uploadFeedImgQuery,
                 [currentFeedId,imgUrls[i].url]

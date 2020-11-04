@@ -16,7 +16,7 @@ exports.uploadFeed = async function (req, res) {
 
         const [userIdx] = await userDao.getUserIdxbyId(userId);
         const insertFeed = await feedDao.uploadFeed(userIdx[0].userIdx, imgUrls, caption);
-
+        console.log(insertFeed);
         return res.json({
             isSuccess: true,
             code: 200,
