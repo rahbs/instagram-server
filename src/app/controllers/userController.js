@@ -17,17 +17,26 @@ exports.signUp = async function (req, res) {
     if (!name) return res.json({isSuccess: false, code: 301, message: "name을 입력해 주세요"});
     if (!password) return res.json({isSuccess: false, code: 302, message: "password를 입력해 주세요"});
     if (!phoneNum && !email) return res.json({isSuccess: false, code: 303, message: "email과 phoneNum 중 하나는 입력해주세요"});
-    if (email.length > 30) return res.json({
+    if (email && email.length > 30) return res.json({
         isSuccess: false,
         code: 304,
         message: "이메일은 30자리 미만으로 입력해주세요"
     });
-    if (!regexEmail.test(email)) return res.json({isSuccess: false, code: 305, message: "올바르지 않은 email 형식입니다"});
-
-    if (password.length < 6 || password.length > 20) return res.json({
+    if (email && !regexEmail.test(email)) return res.json({isSuccess: false, code: 305, message: "올바르지 않은 email 형식입니다"});
+    const regexPwd = /^(?=.*\d)(?=.*[a-zA-Z])[0-9a-zA-Z]{6,20}$/;
+    // if (password.length < 6 || password.length > 20) return res.json({
+    if (!regexPwd.test(password)) return res.json({
         isSuccess: false,
         code: 306,
-        message: "비밀번호는 6~20자리를 입력해주세요"
+        message: "비밀번호는 6~20자리의 영문 숫자조합이어야 합니다."
+
+    });
+    const regexPhoneNum = /^01(?:0|1|[6-9])(?:\d{3}|\d{4})\d{4}$/;
+    if (phoneNum && !regexPhoneNum.test(phoneNum)) return res.json({
+        isSuccess: false,
+        code: 307,
+        message: "phoneNum 형식이 맞지 않습니다 (ex: 01012341234)"
+
     });
 
     try {
@@ -187,7 +196,6 @@ exports.signIn = async function (req, res) {
 
         try {
             const [userInfoRows] = await userDao.selectUserInfobyphoneNum(phoneNum)
-            console.log(userInfoRows);
             if (userInfoRows.length < 1) {
                 connection.release();
                 return res.json({

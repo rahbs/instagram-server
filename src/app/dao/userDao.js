@@ -5,7 +5,7 @@ async function userEmailCheck(email) {
   const connection = await pool.getConnection(async (conn) => conn);
   const selectEmailQuery = `
                 SELECT userId
-                FROM userInfo 
+                FROM user 
                 WHERE email = ?;
                 `;
   const selectEmailParams = [email];
@@ -21,7 +21,7 @@ async function getUserIdxbyId(userId){
   const connection = await pool.getConnection(async (conn) => conn);
   const selectUserIdxQuery = `
                 SELECT userIdx 
-                FROM userInfo 
+                FROM user
                 WHERE userId = ? and isDeleted = 'N';
                 `;
   const selectUserIdxParams = [userId];
@@ -38,7 +38,7 @@ async function userIdCheck(nickname) {
   const connection = await pool.getConnection(async (conn) => conn);
   const selectNicknameQuery = `
                 SELECT userId
-                FROM userInfo 
+                FROM user
                 WHERE userId = ?;
                 `;
   const selectNicknameParams = [nickname];
@@ -53,7 +53,7 @@ async function userIdCheck(nickname) {
 async function insertUserInfo(insertUserInfoParams) {
   const connection = await pool.getConnection(async (conn) => conn);
   const insertUserInfoQuery = `
-        INSERT INTO userInfo(userId, password, userName, email, phoneNum)
+        INSERT INTO user(userId, password, name, email, phoneNum)
         VALUES (?, ?, ?, ?, ?);
     `;
   const insertUserInfoRow = await connection.query(
@@ -77,6 +77,23 @@ async function selectUserInfobyphoneNum(phoneNum) {
   );
   return [userInfoRows];
 }
+
+async function selectUserInfobyId(id) {
+  const connection = await pool.getConnection(async (conn) => conn);
+  const selectUserInfoQuery = `
+                SELECT userIdx, userId, name, email, phoneNum 
+                FROM user
+                WHERE userId = ?;
+                `;
+
+  let selectUserInfoParams = [id];
+  const [userInfoRows] = await connection.query(
+    selectUserInfoQuery,
+    selectUserInfoParams
+  );
+  return [userInfoRows];
+}
+
 
 
 
@@ -104,4 +121,6 @@ module.exports = {
   insertUserInfo,
   //selectUserInfo,
   selectUserInfobyphoneNum,
+  selectUserInfobyId,
+  getUserIdxbyId
 };
