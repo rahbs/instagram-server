@@ -7,6 +7,6 @@ module.exports = function(app){
 
     app.get('/check', jwtMiddleware, user.check);
 
-    app.route('/user').post(user.signUp);
+    app.route('/signUp').post(user.signUp);
     //app.get('/user', jwtMiddleware, user.getUserInfo);
 };

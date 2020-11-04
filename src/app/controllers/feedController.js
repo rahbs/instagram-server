@@ -24,7 +24,7 @@ exports.uploadFeed = async function (req, res) {
         });
     } catch (err) {
         //connection.release();
-        logger.error(`App - upload Query error\n: ${err.message}`);
+        logger.error(`App - uploadFeed Query error\n: ${err.message}`);
         return res.status(500).send(`Error: ${err.message}`);
     }    
 };
