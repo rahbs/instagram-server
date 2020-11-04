@@ -104,7 +104,7 @@ module.exports = {
   userEmailCheck,
   userIdCheck,
   insertUserInfo,
-  selectUserInfo,
+  //selectUserInfo,
   selectUserInfobyId,
   getUserIdxbyId,
 };
