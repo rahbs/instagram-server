@@ -1,3 +1,9 @@
 async function messages(isSucess,codeNum,msg){
-    return res.json("isSucess : " + isSucess,"code : "+codeNum, "message : " + msg);
+    return ("isSucess : " + isSucess +'\n' + "code : "+codeNum +'\n'+ "message : " + msg);
 }
+
+
+module.exports = {
+    messages,
+  };
+  
