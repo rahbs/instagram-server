@@ -167,17 +167,18 @@ exports.signUpTemplate = async function (req, res) {
  **/
 exports.signIn = async function (req, res) {
     const {
-        email, password
+        phoneNum, password
     } = req.body;
 
-    if (!email) return res.json({isSuccess: false, code: 301, message: "이메일을 입력해주세요."});
-    if (email.length > 30) return res.json({
+    if (!phoneNum) return res.json({isSuccess: false, code: 301, message: "번호를 입력해주세요."});
+    var regexPhoneNum = /^01(?:0|1|[6-9])(?:\d{3}|\d{4})\d{4}$/;
+    if(!regexPhoneNum.test(phoneNum)) return res.json({
         isSuccess: false,
         code: 302,
-        message: "이메일은 30자리 미만으로 입력해주세요."
-    });
+        message: "올바른 번호를 입력해주세요"
+    }); 
 
-    if (!regexEmail.test(email)) return res.json({isSuccess: false, code: 303, message: "이메일을 형식을 정확하게 입력해주세요."});
+    //if (!regexEmail.test(email)) return res.json({isSuccess: false, code: 303, message: "이메일을 형식을 정확하게 입력해주세요."});
 
     if (!password) return res.json({isSuccess: false, code: 304, message: "비밀번호를 입력 해주세요."});
 
@@ -185,44 +186,45 @@ exports.signIn = async function (req, res) {
         const connection = await pool.getConnection(async conn => conn);
 
         try {
-            const [userInfoRows] = await userDao.selectUserInfo(email)
-
+            const [userInfoRows] = await userDao.selectUserInfobyphoneNum(phoneNum)
+            console.log(userInfoRows);
             if (userInfoRows.length < 1) {
                 connection.release();
                 return res.json({
                     isSuccess: false,
                     code: 310,
-                    message: "아이디를 확인해주세요."
+                    message: "없는 아이디거나 비밀번호가 틀렸습니다."
                 });
             }
 
-            const hashedPassword = await crypto.createHash('sha512').update(password).digest('hex');
-            if (userInfoRows[0].pswd !== hashedPassword) {
+            //const hashedPassword = await crypto.createHash('sha512').update(password).digest('hex');
+            if (userInfoRows[0].password !== password) {
                 connection.release();
                 return res.json({
                     isSuccess: false,
-                    code: 311,
-                    message: "비밀번호를 확인해주세요."
+                    code: 310,
+                    message: "없는 아이디거나 비밀번호가 틀렸습니다."
                 });
             }
-            if (userInfoRows[0].status === "INACTIVE") {
+            if (userInfoRows[0].isDeleted === "Y") {
                 connection.release();
                 return res.json({
                     isSuccess: false,
                     code: 312,
-                    message: "비활성화 된 계정입니다. 고객센터에 문의해주세요."
-                });
-            } else if (userInfoRows[0].status === "DELETED") {
-                connection.release();
-                return res.json({
-                    isSuccess: false,
-                    code: 313,
                     message: "탈퇴 된 계정입니다. 고객센터에 문의해주세요."
                 });
             }
+            // else if (userInfoRows[0].status === "DELETED") {
+            //     connection.release();
+            //     return res.json({
+            //         isSuccess: false,
+            //         code: 313,
+            //         message: "탈퇴 된 계정입니다. 고객센터에 문의해주세요."
+            //     });
+            // }
             //토큰 생성
             let token = await jwt.sign({
-                    id: userInfoRows[0].id,
+                    id: userInfoRows[0].userIdx,
                 }, // 토큰의 내용(payload)
                 secret_config.jwtsecret, // 비밀 키
                 {
@@ -232,7 +234,7 @@ exports.signIn = async function (req, res) {
             );
 
             res.json({
-                userInfo: userInfoRows[0],
+                //userInfo: userInfoRows[0].userID,
                 jwt: token,
                 isSuccess: true,
                 code: 200,
@@ -250,6 +252,7 @@ exports.signIn = async function (req, res) {
         return false;
     }
 };
+
 
 /**
  update : 2019.09.23
