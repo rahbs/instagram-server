@@ -12,9 +12,9 @@ exports.uploadFeed = async function (req, res) {
     if(!imgUrls) return res.json({isSuccess: false, code: 300, message: "imgUrls에 값이 없습니다."});
     
     try {
-        const userId = req.verifiedToken.id;
-        const [userIdx] = await userDao.getUserIdxbyId(userId);
-        const insertFeed = await feedDao.uploadFeed(userIdx[0].userIdx, imgUrls, caption);
+        const userIdx = req.verifiedToken.id;
+        //const [userIdx] = await userDao.getUserIdxbyId(userId);
+        const insertFeed = await feedDao.uploadFeed(userIdx, imgUrls, caption);
         return res.json({
             isSuccess: true,
             code: 200,
@@ -27,8 +27,8 @@ exports.uploadFeed = async function (req, res) {
 };
 
 exports. getUserFeed= async function (req, res){
-    const userId = req.verifiedToken.id;
-    const [userIdx] = await userDao.getUserIdxbyId(userId); // 현재 사용자의 userIdx
+    const userIdx = req.verifiedToken.id;
+    //const [userIdx] = await userDao.getUserIdxbyId(userId); // 현재 사용자의 userIdx
     const userIdxOfFeed = req.params['userIdx']; // 조회하려는 피드를 소유한 usrIdx
     // path variable로 들어온 usrIdx가 valid한지 체크
     const [isExistingUserIdx] = await userDao.isExistingUserIdx(userIdxOfFeed);
@@ -45,11 +45,11 @@ exports. getUserFeed= async function (req, res){
 
     //set reation variable
     let relation;
-    const [isFollowing] = await userDao.isFollowing(userIdx[0].userIdx,userIdxOfFeed);
+    const [isFollowing] = await userDao.isFollowing(userIdx,userIdxOfFeed);
     const [isPrivateUserIdx] = await userDao.isPrivateUserIdx(userIdxOfFeed);
     // console.log('isFollowing: ', Object.values(isFollowing[0])[0]);
     // console.log('isPrivateUserIdx: ', Object.values(isPrivateUserIdx[0])[0]);
-    if (userIdx[0].userIdx == userIdxOfFeed) //내 계정:A
+    if (userIdx == userIdxOfFeed) //내 계정:A
         relation = 'A';
     else if(Object.values(isFollowing[0])[0]) //팔로잉하는 계정:B
         relation = 'B';
