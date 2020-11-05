@@ -4,5 +4,7 @@ module.exports = function(app){
 
 
     app.route('/feed').post(jwtMiddleware, feed.uploadFeed);
+    app.get('/user/:userIdx/feeds', jwtMiddleware, feed.getUserFeed);
+
     //app.get('/feeds', jwtMiddleware, feed.getFeeds)
 };
