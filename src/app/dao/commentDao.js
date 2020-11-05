@@ -20,9 +20,32 @@ async function deleteComment(deleteCommentParams) {
   
     return deleteCommentRows
   }
+//유효한 댓글 조회
+  async function selectComment(selectCommentParams) {
+    const connection = await pool.getConnection(async (conn) => conn);
+    const selectCommentQuery = `select id from comment where id = ?;`;
+  
+    const [selectCommentRows] = await connection.query(selectCommentQuery, selectCommentParams);
+    connection.release();
+  
+    return selectCommentRows
+  }
+//이미 삭제되었는지 여부 검사
+  async function selectCommentIsDeleted(selectCommentIsDeletedParams) {
+    const connection = await pool.getConnection(async (conn) => conn);
+    const selectCommentIsDeletedQuery = `select id from comment where id = ? && isDeleted = 'N';`;
+  
+    const [selectCommentIsDeletedRows] = await connection.query(selectCommentIsDeletedQuery, selectCommentIsDeletedParams);
+    connection.release();
+  
+    return selectCommentIsDeletedRows
+  }
+
 
 module.exports = {
     insertComment,
     deleteComment,
+    selectComment,
+    selectCommentIsDeleted,
   };
   
