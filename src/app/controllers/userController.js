@@ -170,8 +170,8 @@ exports.signUpTemplate = async function (req, res) {
 };
 
 /**
- update : 2020.10.4
- 02.signIn API = 로그인
+ update : 2020.11.5
+ 04.signIn API = 로그인
  **/
 exports.signIn = async function (req, res) {
     const {

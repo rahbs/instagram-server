@@ -6,6 +6,6 @@ module.exports = function(app){
 
     //app.get('/check', jwtMiddleware, user.check);
     app.route('/comment').post(comment.createComment); //post할때 jwt검사는 어떻게?
-
+    app.get('/comment/:commentId',comment.deleteComment);
 
 };
