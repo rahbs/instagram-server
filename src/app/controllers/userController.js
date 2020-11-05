@@ -196,7 +196,6 @@ exports.signIn = async function (req, res) {
             {
                 const [userInfoRows] = await userDao.selectUserInfobyphoneNum(Id);
             if (userInfoRows.length < 1) {
-                connection.release();
                 return res.json({
                     isSuccess: false,
                     code: 310,
@@ -206,7 +205,6 @@ exports.signIn = async function (req, res) {
 
             const hashedPassword = await crypto.createHash('sha512').update(password).digest('hex');
             if (userInfoRows[0].password !== hashedPassword) {
-                connection.release();
                 return res.json({
                     isSuccess: false,
                     code: 310,
@@ -214,7 +212,6 @@ exports.signIn = async function (req, res) {
                 });
             }
             if (userInfoRows[0].isDeleted === "Y") {
-                connection.release();
                 return res.json({
                     isSuccess: false,
                     code: 312,
@@ -244,7 +241,6 @@ exports.signIn = async function (req, res) {
            else if(regexEmail.test(Id)){
                 const [userInfoRows] = await userDao.selectUserInfobyemail(Id);
                 if (userInfoRows.length < 1) {
-                    connection.release();
                     return res.json({
                         isSuccess: false,
                         code: 310,
@@ -254,7 +250,6 @@ exports.signIn = async function (req, res) {
     
                 const hashedPassword = await crypto.createHash('sha512').update(password).digest('hex');
                 if (userInfoRows[0].password !== hashedPassword) {
-                    connection.release();
                     return res.json({
                         isSuccess: false,
                         code: 310,
@@ -262,7 +257,6 @@ exports.signIn = async function (req, res) {
                     });
                 }
                 if (userInfoRows[0].isDeleted === "Y") {
-                    connection.release();
                     return res.json({
                         isSuccess: false,
                         code: 312,
@@ -289,9 +283,8 @@ exports.signIn = async function (req, res) {
             }
             else{
                 const [userInfoRows] = await userDao.selectUserInfobyuserId(Id);
-                console.log(userInfoRows.length);
-                if (Array.isArrayrs(userInfoRows)&&userInfoRows.length === 0) {
-                    connection.release();
+                console.log(userInfoRows);
+                if (userInfoRows.length < 1) {
                     return res.json({
                         isSuccess: false,
                         code: 310,
@@ -301,7 +294,6 @@ exports.signIn = async function (req, res) {
     
                 const hashedPassword = await crypto.createHash('sha512').update(password).digest('hex');
                 if (userInfoRows[0].password !== hashedPassword) {
-                    connection.release();
                     return res.json({
                         isSuccess: false,
                         code: 310,
@@ -309,7 +301,6 @@ exports.signIn = async function (req, res) {
                     });
                 }
                 if (userInfoRows[0].isDeleted === "Y") {
-                    connection.release();
                     return res.json({
                         isSuccess: false,
                         code: 312,
