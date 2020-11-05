@@ -67,14 +67,40 @@ async function insertUserInfo(insertUserInfoParams) {
 
 async function selectUserInfobyphoneNum(phoneNum) {
   const connection = await pool.getConnection(async (conn) => conn);
-  const selectUserInfoQuery = `
-  select userIdx, password, isDeleted, phoneNum from user where phoneNum = ?;`;
+  const selectUserInfoQuery = `select userIdx, password, isDeleted, phoneNum from user where phoneNum = ?;`;
 
   let selectUserInfoParams = [phoneNum];
   const [userInfoRows] = await connection.query(
     selectUserInfoQuery,
     selectUserInfoParams
   );
+  connection.release();
+  return [userInfoRows];
+}
+
+async function selectUserInfobyemail(email) {
+  const connection = await pool.getConnection(async (conn) => conn);
+  const selectUserInfoQuery = `select userIdx, password, isDeleted, phoneNum from user where email = ?;`;
+
+  let selectUserInfoParams = [email];
+  const [userInfoRows] = await connection.query(
+    selectUserInfoQuery,
+    selectUserInfoParams
+  );
+  connection.release();
+  return [userInfoRows];
+}
+
+async function selectUserInfobyuserId(userId) {
+  const connection = await pool.getConnection(async (conn) => conn);
+  const selectUserInfoQuery = `select userIdx, password, isDeleted, phoneNum from user where userId = ?;`;
+
+  let selectUserInfoParams = [userId];
+  const [userInfoRows] = await connection.query(
+    selectUserInfoQuery,
+    selectUserInfoParams
+  );
+  connection.release();
   return [userInfoRows];
 }
 
@@ -121,6 +147,8 @@ module.exports = {
   insertUserInfo,
   //selectUserInfo,
   selectUserInfobyphoneNum,
+  selectUserInfobyemail,
+  selectUserInfobyuserId,
   selectUserInfobyId,
   getUserIdxbyId
 };
