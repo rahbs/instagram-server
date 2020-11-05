@@ -64,7 +64,7 @@ exports. getUserFeed= async function (req, res){
 
         let feedList;
         if(relation == 'D')
-            feedList = null;
+            feedList = [];
         else
             [feedList] = await feedDao.getUserFeedList(userIdxOfFeed);
         
