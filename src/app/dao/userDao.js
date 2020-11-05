@@ -6,7 +6,7 @@ async function userEmailCheck(email) {
   const selectEmailQuery = `
                 SELECT userId
                 FROM user 
-                WHERE email = ?;
+                WHERE email = ? and isDeleted ='N';
                 `;
   const selectEmailParams = [email];
   const [emailRows] = await connection.query(
@@ -39,7 +39,7 @@ async function userIdCheck(nickname) {
   const selectNicknameQuery = `
                 SELECT userId
                 FROM user
-                WHERE userId = ?;
+                WHERE userId = ? and isDeleted = 'N';
                 `;
   const selectNicknameParams = [nickname];
   const [nicknameRows] = await connection.query(
@@ -67,7 +67,8 @@ async function insertUserInfo(insertUserInfoParams) {
 
 async function selectUserInfobyphoneNum(phoneNum) {
   const connection = await pool.getConnection(async (conn) => conn);
-  const selectUserInfoQuery = `select userIdx, password, isDeleted, phoneNum from user where phoneNum = ?;`;
+  const selectUserInfoQuery = `
+  select userIdx, password, isDeleted, phoneNum from user where phoneNum = ? and isDeleted = 'N';`;
 
   let selectUserInfoParams = [phoneNum];
   const [userInfoRows] = await connection.query(
@@ -109,7 +110,7 @@ async function selectUserInfobyId(id) {
   const selectUserInfoQuery = `
                 SELECT userIdx, userId, name, email, phoneNum 
                 FROM user
-                WHERE userId = ?;
+                WHERE userId = ? and isDeleted = 'N';
                 `;
 
   let selectUserInfoParams = [id];
@@ -117,38 +118,86 @@ async function selectUserInfobyId(id) {
     selectUserInfoQuery,
     selectUserInfoParams
   );
+  connection.release();
   return [userInfoRows];
 }
 
+async function isFollowing(userIdxA, userIdxB){
+  const connection = await pool.getConnection(async (conn) => conn);
+    try{
+        const checkFollowingQUery = `
+            select EXISTS(
+                    SELECT * from follow
+                    WHERE followingUserIdx = ? and followedUserIdx = ?
+                   );`;
+ 
+        const checkFollowing = await connection.query(
+            checkFollowingQUery,
+            [userIdxA, userIdxB]
+            );
 
+         return checkFollowing;
+    } catch(err){
+        console.log(err);
+    } finally{
+        connection.release();
+    }
+}
 
-
-
-//SignIn
-// async function selectUserInfo(email) {
-//   const connection = await pool.getConnection(async (conn) => conn);
-//   const selectUserInfoQuery = `
-//                 SELECT id, email , pswd, nickname, status 
-//                 FROM UserInfo 
-//                 WHERE email = ?;
-//                 `;
-
-//   let selectUserInfoParams = [email];
-//   const [userInfoRows] = await connection.query(
-//     selectUserInfoQuery,
-//     selectUserInfoParams
-//   );
-//   return [userInfoRows];
-// }
+async function isPrivateUserIdx(userIdxA, userIdxB){
+  const connection = await pool.getConnection(async (conn) => conn);
+    try{
+        const checkPrivateUserIdxQuery = `
+            select EXISTS(
+                select * from user 
+                where userIdx = ? and isPrivate = 'Y' and isDeleted = 'N'
+                   );`;
+ 
+        const checkPrivateUserIdx = await connection.query(
+            checkPrivateUserIdxQuery,
+            [userIdxA, userIdxB]
+            );
+            
+         return checkPrivateUserIdx;
+    } catch(err){
+        console.log(err);
+    } finally{
+        connection.release();
+    }
+}
+//존재하는 id인지 체크
+async function isExistingUserIdx(userIdx){
+  const connection = await pool.getConnection(async (conn) => conn);
+    try{
+        const checkUserIdxQuery = `
+            select EXISTS(
+                select * from user 
+                where userIdx = ? and isDeleted = 'N'
+                   );`;
+ 
+        const checkUserIdx = await connection.query(
+          checkUserIdxQuery,
+            [userIdx]
+            );
+            
+         return checkUserIdx;
+    } catch(err){
+        console.log(err);
+    } finally{
+        connection.release();
+    }
+}
 
 module.exports = {
   userEmailCheck,
   userIdCheck,
   insertUserInfo,
-  //selectUserInfo,
   selectUserInfobyphoneNum,
   selectUserInfobyemail,
   selectUserInfobyuserId,
   selectUserInfobyId,
-  getUserIdxbyId
+  getUserIdxbyId,
+  isFollowing,
+  isPrivateUserIdx,
+  isExistingUserIdx
 };
