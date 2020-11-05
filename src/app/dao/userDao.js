@@ -81,7 +81,7 @@ async function selectUserInfobyphoneNum(phoneNum) {
 
 async function selectUserInfobyemail(email) {
   const connection = await pool.getConnection(async (conn) => conn);
-  const selectUserInfoQuery = `select userIdx, password, isDeleted, phoneNum from user where email = ?;`;
+  const selectUserInfoQuery = `select userIdx, password, isDeleted, phoneNum from user where email = ? and isDeleted = 'N';`;
 
   let selectUserInfoParams = [email];
   const [userInfoRows] = await connection.query(
@@ -94,7 +94,7 @@ async function selectUserInfobyemail(email) {
 
 async function selectUserInfobyuserId(userId) {
   const connection = await pool.getConnection(async (conn) => conn);
-  const selectUserInfoQuery = `select userIdx, password, isDeleted, phoneNum from user where userId = ?;`;
+  const selectUserInfoQuery = `select userIdx, password, isDeleted, phoneNum from user where userId = ? and isDeleted = 'N';`;
 
   let selectUserInfoParams = [userId];
   const [userInfoRows] = await connection.query(

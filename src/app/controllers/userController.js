@@ -178,17 +178,9 @@ exports.signIn = async function (req, res) {
         Id, password
     } = req.body;
 
-
-
-
     if (!Id) return res.json({isSuccess: false, code: 301, message: "번호 혹은 이메일, 닉네임을 입력해주세요."});
     
-
     if (!password) return res.json({isSuccess: false, code: 304, message: "비밀번호를 입력 해주세요."});
-    // const regexPhoneNum = /^01(?:0|1|[6-9])(?:\d{3}|\d{4})\d{4}$/;
-    // if(regexEmail.test(Id))res.json({isSuccess: true});
-    // else if(regexPhoneNum.test(Id))res.json({isSuccess:true});
-    // else res.json({isSuccess:false});
     
         try {
             const regexPhoneNum = /^01(?:0|1|[6-9])(?:\d{3}|\d{4})\d{4}$/;
@@ -283,7 +275,6 @@ exports.signIn = async function (req, res) {
             }
             else{
                 const [userInfoRows] = await userDao.selectUserInfobyuserId(Id);
-                console.log(userInfoRows);
                 if (userInfoRows.length < 1) {
                     return res.json({
                         isSuccess: false,
