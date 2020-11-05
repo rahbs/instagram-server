@@ -79,6 +79,32 @@ async function selectUserInfobyphoneNum(phoneNum) {
   return [userInfoRows];
 }
 
+async function selectUserInfobyemail(email) {
+  const connection = await pool.getConnection(async (conn) => conn);
+  const selectUserInfoQuery = `select userIdx, password, isDeleted, phoneNum from user where email = ?;`;
+
+  let selectUserInfoParams = [email];
+  const [userInfoRows] = await connection.query(
+    selectUserInfoQuery,
+    selectUserInfoParams
+  );
+  connection.release();
+  return [userInfoRows];
+}
+
+async function selectUserInfobyuserId(userId) {
+  const connection = await pool.getConnection(async (conn) => conn);
+  const selectUserInfoQuery = `select userIdx, password, isDeleted, phoneNum from user where userId = ?;`;
+
+  let selectUserInfoParams = [userId];
+  const [userInfoRows] = await connection.query(
+    selectUserInfoQuery,
+    selectUserInfoParams
+  );
+  connection.release();
+  return [userInfoRows];
+}
+
 async function selectUserInfobyId(id) {
   const connection = await pool.getConnection(async (conn) => conn);
   const selectUserInfoQuery = `
@@ -167,6 +193,8 @@ module.exports = {
   userIdCheck,
   insertUserInfo,
   selectUserInfobyphoneNum,
+  selectUserInfobyemail,
+  selectUserInfobyuserId,
   selectUserInfobyId,
   getUserIdxbyId,
   isFollowing,
