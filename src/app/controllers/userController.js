@@ -175,27 +175,26 @@ exports.signUpTemplate = async function (req, res) {
  **/
 exports.signIn = async function (req, res) {
     const {
-        phoneNum, password
+        Id, password
     } = req.body;
 
-    if (!phoneNum) return res.json({isSuccess: false, code: 301, message: "번호를 입력해주세요."});
-    var regexPhoneNum = /^01(?:0|1|[6-9])(?:\d{3}|\d{4})\d{4}$/;
-    if(!regexPhoneNum.test(phoneNum)) return res.json({
-        isSuccess: false,
-        code: 302,
-        message: "올바른 번호를 입력해주세요"
-    }); 
 
-    //if (!regexEmail.test(email)) return res.json({isSuccess: false, code: 303, message: "이메일을 형식을 정확하게 입력해주세요."});
+
+
+    if (!Id) return res.json({isSuccess: false, code: 301, message: "번호 혹은 이메일, 닉네임을 입력해주세요."});
+    
 
     if (!password) return res.json({isSuccess: false, code: 304, message: "비밀번호를 입력 해주세요."});
-
-    try {
-        const connection = await pool.getConnection(async conn => conn);
-
+    // const regexPhoneNum = /^01(?:0|1|[6-9])(?:\d{3}|\d{4})\d{4}$/;
+    // if(regexEmail.test(Id))res.json({isSuccess: true});
+    // else if(regexPhoneNum.test(Id))res.json({isSuccess:true});
+    // else res.json({isSuccess:false});
+    
         try {
-            const [userInfoRows] = await userDao.selectUserInfobyphoneNum(phoneNum)
-            console.log(userInfoRows);
+            const regexPhoneNum = /^01(?:0|1|[6-9])(?:\d{3}|\d{4})\d{4}$/;
+            if(regexPhoneNum.test(Id))
+            {
+                const [userInfoRows] = await userDao.selectUserInfobyphoneNum(Id);
             if (userInfoRows.length < 1) {
                 connection.release();
                 return res.json({
@@ -222,14 +221,6 @@ exports.signIn = async function (req, res) {
                     message: "탈퇴 된 계정입니다. 고객센터에 문의해주세요."
                 });
             }
-            // else if (userInfoRows[0].status === "DELETED") {
-            //     connection.release();
-            //     return res.json({
-            //         isSuccess: false,
-            //         code: 313,
-            //         message: "탈퇴 된 계정입니다. 고객센터에 문의해주세요."
-            //     });
-            // }
             //토큰 생성
             let token = await jwt.sign({
                     id: userInfoRows[0].userIdx,
@@ -248,17 +239,106 @@ exports.signIn = async function (req, res) {
                 code: 200,
                 message: "로그인 성공"
             });
+            }
 
-            connection.release();
+           else if(regexEmail.test(Id)){
+                const [userInfoRows] = await userDao.selectUserInfobyemail(Id);
+                if (userInfoRows.length < 1) {
+                    connection.release();
+                    return res.json({
+                        isSuccess: false,
+                        code: 310,
+                        message: "없는 아이디거나 비밀번호가 틀렸습니다."
+                    });
+                }
+    
+                const hashedPassword = await crypto.createHash('sha512').update(password).digest('hex');
+                if (userInfoRows[0].password !== hashedPassword) {
+                    connection.release();
+                    return res.json({
+                        isSuccess: false,
+                        code: 310,
+                        message: "없는 아이디거나 비밀번호가 틀렸습니다."
+                    });
+                }
+                if (userInfoRows[0].isDeleted === "Y") {
+                    connection.release();
+                    return res.json({
+                        isSuccess: false,
+                        code: 312,
+                        message: "탈퇴 된 계정입니다. 고객센터에 문의해주세요."
+                    });
+                }
+                //토큰 생성
+                let token = await jwt.sign({
+                        id: userInfoRows[0].userIdx,
+                    }, // 토큰의 내용(payload)
+                    secret_config.jwtsecret, // 비밀 키
+                    {
+                        expiresIn: '365d',
+                        subject: 'userInfo',
+                    } // 유효 시간은 365일
+                );
+    
+                res.json({
+                    jwt: token,
+                    isSuccess: true,
+                    code: 200,
+                    message: "로그인 성공"
+                });
+            }
+            else{
+                const [userInfoRows] = await userDao.selectUserInfobyuserId(Id);
+                console.log(userInfoRows.length);
+                if (Array.isArrayrs(userInfoRows)&&userInfoRows.length === 0) {
+                    connection.release();
+                    return res.json({
+                        isSuccess: false,
+                        code: 310,
+                        message: "없는 아이디거나 비밀번호가 틀렸습니다."
+                    });
+                }
+    
+                const hashedPassword = await crypto.createHash('sha512').update(password).digest('hex');
+                if (userInfoRows[0].password !== hashedPassword) {
+                    connection.release();
+                    return res.json({
+                        isSuccess: false,
+                        code: 310,
+                        message: "없는 아이디거나 비밀번호가 틀렸습니다."
+                    });
+                }
+                if (userInfoRows[0].isDeleted === "Y") {
+                    connection.release();
+                    return res.json({
+                        isSuccess: false,
+                        code: 312,
+                        message: "탈퇴 된 계정입니다. 고객센터에 문의해주세요."
+                    });
+                }
+                //토큰 생성
+                let token = await jwt.sign({
+                        id: userInfoRows[0].userIdx,
+                    }, // 토큰의 내용(payload)
+                    secret_config.jwtsecret, // 비밀 키
+                    {
+                        expiresIn: '365d',
+                        subject: 'userInfo',
+                    } // 유효 시간은 365일
+                );
+    
+                res.json({
+                    jwt: token,
+                    isSuccess: true,
+                    code: 200,
+                    message: "로그인 성공"
+                });
+            }            
         } catch (err) {
             logger.error(`App - SignIn Query error\n: ${JSON.stringify(err)}`);
             connection.release();
             return false;
         }
-    } catch (err) {
-        logger.error(`App - SignIn DB Connection error\n: ${JSON.stringify(err)}`);
-        return false;
-    }
 };
 
 
