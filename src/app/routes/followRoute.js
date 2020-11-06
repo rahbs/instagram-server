@@ -6,4 +6,5 @@ module.exports = function(app){
     // app.delete('/comment/:commentId', jwtMiddleware ,comment.deleteComment);
     // app.get('/feed/:feedId/comments',jwtMiddleware,comment.selectCommentList);
     app.route('/followRequest').post(jwtMiddleware,follow.requestFollow);
+    app.route('/followAccept/:followRequestId').post(jwtMiddleware,follow.acceptFollow);
 };

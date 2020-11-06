@@ -59,11 +59,41 @@ async function requestFollowPrivateUser(requestFollowPrivateUserParams) {
         connection.release();
         return requestFollowPrivateUserRows.insertId
     }
-   
 }
+
+//팔로우 리스트 조회
+// async function requestFollow(requestFollowParams) {
+//     const connection = await pool.getConnection(async (conn) => conn);
+//     const selectFollowQuery = `select follow from follow where followingUserIdx = ? && followedUserIdx = ?;`;
+
+    
+//         const [requestFollowRows] = await connection.query(requestFollowQuery,requestFollowParams);
+//         connection.release();
+
+// }
+//팔로잉 리스트 조회
+
+//팔로우 요청 수락
+async function acceptFollow(acceptFollowParams) {
+    const connection = await pool.getConnection(async (conn) => conn);
+    const acceptFollowQuery = `update followRequest set isAccepted = 'Y' where id=? && isDeleted = 'N';`;
+    const [acceptFollowRows] = await connection.query(acceptFollowQuery,acceptFollowParams);
+    connection.release();    
+}
+async function selectRequestFollowbyUserId(selectRequestFollowbyUserIdParams) {
+    const connection = await pool.getConnection(async (conn) => conn);
+    const selectRequestFollowbyUserIdQuery = `select requestedUserIdx as Id from followRequest where id = ?;`;
+    const [selectRequestFollowbyUserIdRows] = await connection.query(selectRequestFollowbyUserIdQuery,selectRequestFollowbyUserIdParams);
+    connection.release();    
+    return selectRequestFollowbyUserIdRows[0].Id
+}
+
+
 
 
 module.exports = {
     requestFollow,
     requestFollowPrivateUser,
+    acceptFollow,
+    selectRequestFollowbyUserId,
 }
