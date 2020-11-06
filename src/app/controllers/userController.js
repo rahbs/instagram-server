@@ -84,10 +84,25 @@ exports.signUp = async function (req, res) {
         return res.status(500).send(`Error: ${err.message}`);
     }
 };
-// exports.getUserInfo = async function (req, res) {
-//     const decodedToken = req.verifiedToken;
-//     decodedToken.id
-// }
+
+exports.getUserInfo = async function (req, res) {
+    const userIdx = req.verifiedToken.id;
+
+    try{
+        // getUserInfo
+        const getUserInfo = await userDao.getUserInfo(userIdx);
+        return res.json({
+            result: getUserInfo[0][0],
+            isSuccess: true,
+            code: 200,
+            message: "사용자 정보가 성공적으로 조회되었습니다."
+        });
+        ㄴ
+    } catch (err){
+    logger.error(`App - getUserInfo Query error\n: ${err.message}`);
+    return res.status(500).send(`Error: ${err.message}`);
+    }
+}
 /**
  update : 2020.10.4
  01.signUp API = 회원가입

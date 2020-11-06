@@ -187,6 +187,28 @@ async function isExistingUserIdx(userIdx){
         connection.release();
     }
 }
+async function getUserInfo(userIdx){
+  const connection = await pool.getConnection(async (conn) => conn);
+  try{
+      const getUserInfoQeury = `
+      select profileImgUrl,name as userName, userId, 
+            profileWebSite,profileIntro,email,phoneNum,
+            sex as gender
+      from user
+      where userIdx = ?`;
+
+      const getUserInfo = await connection.query(
+        getUserInfoQeury,
+          [userIdx]
+          );
+          
+       return getUserInfo;
+  } catch(err){
+      console.log(err);
+  } finally{
+      connection.release();
+  }
+}
 
 module.exports = {
   userEmailCheck,
@@ -199,5 +221,6 @@ module.exports = {
   getUserIdxbyId,
   isFollowing,
   isPrivateUserIdx,
-  isExistingUserIdx
+  isExistingUserIdx,
+  getUserInfo
 };
