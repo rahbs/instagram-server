@@ -144,7 +144,7 @@ async function isFollowing(userIdxA, userIdxB){
     }
 }
 
-async function isPrivateUserIdx(userIdxA, userIdxB){
+async function isPrivateUserIdx(userIdx){
   const connection = await pool.getConnection(async (conn) => conn);
     try{
         const checkPrivateUserIdxQuery = `
@@ -155,7 +155,7 @@ async function isPrivateUserIdx(userIdxA, userIdxB){
  
         const checkPrivateUserIdx = await connection.query(
             checkPrivateUserIdxQuery,
-            [userIdxA, userIdxB]
+            [userIdx]
             );
             
          return checkPrivateUserIdx;
