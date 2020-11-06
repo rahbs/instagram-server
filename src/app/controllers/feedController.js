@@ -32,7 +32,7 @@ exports. getUserFeed= async function (req, res){
     const userIdxOfFeed = req.params['userIdx']; // 조회하려는 피드를 소유한 usrIdx
     // path variable로 들어온 usrIdx가 valid한지 체크
     const [isExistingUserIdx] = await userDao.isExistingUserIdx(userIdxOfFeed);
-    if(!Object.values(isExistingUserIdx[0])[0]){
+    if(!isExistingUserIdx[0].exist){
         return res.json({
             result: {},
             isSuccess: false,
@@ -89,3 +89,5 @@ exports. getUserFeed= async function (req, res){
     return res.status(500).send(`Error: ${err.message}`);
     }
 };
+
+    

@@ -173,7 +173,7 @@ async function isExistingUserIdx(userIdx){
             select EXISTS(
                 select * from user 
                 where userIdx = ? and isDeleted = 'N'
-                   );`;
+                   ) as exist;`;
  
         const checkUserIdx = await connection.query(
           checkUserIdxQuery,
