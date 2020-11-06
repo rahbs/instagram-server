@@ -84,6 +84,11 @@ async function selectRequestFollowbyUserId(selectRequestFollowbyUserIdParams) {
     const connection = await pool.getConnection(async (conn) => conn);
     const selectRequestFollowbyUserIdQuery = `select requestedUserIdx as Id from followRequest where id = ?;`;
     const [selectRequestFollowbyUserIdRows] = await connection.query(selectRequestFollowbyUserIdQuery,selectRequestFollowbyUserIdParams);
+    if(selectRequestFollowbyUserIdRows.length < 1){
+        connection.release();
+        return "";
+    }
+    
     connection.release();    
     return selectRequestFollowbyUserIdRows[0].Id
 }
