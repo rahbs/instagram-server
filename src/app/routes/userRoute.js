@@ -7,5 +7,7 @@ module.exports = function(app){
     app.route('/signIn').post(user.signIn);
     app.route('/signUp').post(user.signUp);
     
-    app.get('/user', jwtMiddleware, user.getUserInfo);
+    app.get('/userInfo', jwtMiddleware, user.getUserInfo);
+    app.patch('/userInfo', jwtMiddleware, user.modifyUserInfo);
+
 };

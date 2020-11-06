@@ -34,6 +34,23 @@ async function getUserIdxbyId(userId){
   return [userIdx];
 }
 
+async function getUserIdbyIdx(userIdx){
+  const connection = await pool.getConnection(async (conn) => conn);
+  const selectUserIdQuery = `
+                SELECT userId
+                FROM user
+                WHERE userIdx = ? and isDeleted = 'N';
+                `;
+  const selectUserIdParams = [userIdx];
+  const [userId] = await connection.query(
+    selectUserIdQuery,
+    selectUserIdParams
+  );
+  connection.release();
+
+  return [userId];
+}
+
 async function userIdCheck(nickname) {
   const connection = await pool.getConnection(async (conn) => conn);
   const selectNicknameQuery = `
@@ -210,6 +227,34 @@ async function getUserInfo(userIdx){
   }
 }
 
+
+async function modifyUserInfo(userIdx,profileImgUrl, userName, userId, profileWebSite, profileIntro, email, phoneNum, gender){
+  const connection = await pool.getConnection(async (conn) => conn);
+  try{
+      const modifyProfileImgQUery = `update user set profileImgUrl = ? where userIdx = ?`;
+      const modifyUserNameQUery = `update user set name = ? where userIdx = ?`;
+      const modifyuserIdQUery = `update user set userId = ? where userIdx = ?`;
+      const modifyprofileWebSiteQUery = `update user set profileWebSite = ? where userIdx = ?`;
+      const modifyprofileIntroQUery = `update user set profileIntro = ? where userIdx = ?`;
+      const modifyEmailQUery = `update user set email = ? where userIdx = ?`;
+      const modifyPhoneNumQUery = `update user set phoneNum = ? where userIdx = ?`;
+      const modifyGenderQuery= `update user set sex = ? where userIdx = ?`;
+      if (profileImgUrl) await connection.query( modifyProfileImgQUery,[profileImgUrl, userIdx] );
+      if (userName) await connection.query( modifyUserNameQUery,[userName, userIdx] );
+      if (userId) await connection.query( modifyuserIdQUery,[userId, userIdx] );
+      if (profileWebSite) await connection.query( modifyprofileWebSiteQUery,[profileWebSite, userIdx] );
+      if (profileIntro) await connection.query( modifyprofileIntroQUery,[profileIntro, userIdx] );
+      if (email) await connection.query( modifyEmailQUery,[email, userIdx] );
+      if (phoneNum) await connection.query( modifyPhoneNumQUery,[phoneNum, userIdx] );
+      if (gender) await connection.query( modifyGenderQuery,[gender, userIdx] );
+
+  } catch(err){
+      console.log(err);
+  } finally{
+      connection.release();
+  }
+}
+
 module.exports = {
   userEmailCheck,
   userIdCheck,
@@ -222,5 +267,7 @@ module.exports = {
   isFollowing,
   isPrivateUserIdx,
   isExistingUserIdx,
-  getUserInfo
+  getUserInfo,
+  modifyUserInfo,
+  getUserIdbyIdx
 };

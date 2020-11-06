@@ -7,6 +7,7 @@ const crypto = require('crypto');
 const secret_config = require('../../../config/secret');
 const userDao = require('../dao/userDao');
 const { constants } = require('buffer');
+//const { getUserIdbyIdx } = require('../dao/userDao');
 
 exports.signUp = async function (req, res) {
     const {
@@ -98,6 +99,59 @@ exports.getUserInfo = async function (req, res) {
             message: "사용자 정보가 성공적으로 조회되었습니다."
         });
         ㄴ
+    } catch (err){
+    logger.error(`App - getUserInfo Query error\n: ${err.message}`);
+    return res.status(500).send(`Error: ${err.message}`);
+    }
+}
+
+exports.modifyUserInfo = async function (req, res) {
+    const userIdx = req.verifiedToken.id;
+    const {
+        profileImgUrl, userName, userId, profileWebSite, 
+        profileIntro, email, phoneNum, gender
+    } = req.body;
+    // id 중복 확인
+    [originUserId] = await userDao.getUserIdbyIdx(userIdx)
+    if (userId && userId != originUserId[0].userId){
+        const idRows = await userDao.userIdCheck(userId);
+        if (idRows.length > 0) {
+            return res.json({
+                isSuccess: false,
+                code: 301,
+                message: "중복된 id입니다"
+            });
+        }
+    }
+    // email check
+    if (email && !regexEmail.test(email)) return res.json({isSuccess: false, code: 305, message: "올바르지 않은 email 형식입니다"});
+    // phoneNum check
+    const regexPhoneNum = /^01(?:0|1|[6-9])(?:\d{3}|\d{4})\d{4}$/;
+    if (phoneNum && !regexPhoneNum.test(phoneNum)) return res.json({
+        isSuccess: false,
+        code: 302,
+        message: "phoneNum 형식이 맞지 않습니다 (ex: 01012341234)"
+    });
+    //gender check
+    if(gender){
+        if(gender != 'M' && gender != 'W')
+        return res.json({
+            isSuccess: false,
+            code: 303,
+            message: "gender 값으로는 M / W 만 가능합니다."
+        });
+    }
+    try{
+        const modifyUserInfo = await userDao.modifyUserInfo(userIdx,profileImgUrl, userName, 
+                                                            userId, profileWebSite, profileIntro,
+                                                            email, phoneNum, gender);
+        const getUserInfo = await userDao.getUserInfo(userIdx);
+        return res.json({
+           result: getUserInfo[0][0],
+            isSuccess: true,
+            code: 200,
+            message: "사용자 정보가 성공적으로 수정 되었습니다."
+        });
     } catch (err){
     logger.error(`App - getUserInfo Query error\n: ${err.message}`);
     return res.status(500).send(`Error: ${err.message}`);
