@@ -26,7 +26,7 @@ exports.uploadFeed = async function (req, res) {
     }    
 };
 
-exports. getUserFeed= async function (req, res){
+exports.getUserFeed = async function (req, res){
     const userIdx = req.verifiedToken.id;
     //const [userIdx] = await userDao.getUserIdxbyId(userId); // 현재 사용자의 userIdx
     const userIdxOfFeed = req.params['userIdx']; // 조회하려는 피드를 소유한 usrIdx
@@ -90,4 +90,31 @@ exports. getUserFeed= async function (req, res){
     }
 };
 
-    
+exports.getFeeds = async function (req, res){
+    const userIdx = req.verifiedToken.id;
+    const selectedUserIdx = req.query.userIdx;
+
+    // query string으로 들어온 usrIdx가 valid한지 체크
+    const [isExistingUserIdx] = await userDao.isExistingUserIdx(selectedUserIdx);
+    if(selectedUserIdx && !isExistingUserIdx[0].exist){
+        return res.json({
+            result: {},
+            isSuccess: false,
+            code: 201,
+            message: "query string로 들어온 usrIdx가 존재하지 않습니다."
+        });
+    }
+    try{
+        // getUserInfo
+        const getFeeds = await feedDao.getFeeds(userIdx,selectedUserIdx);
+        return res.json({
+            result: getFeeds,
+            isSuccess: true,
+            code: 200,
+            message: "Feeds가 성공적으로 조회되었습니다."
+        });
+    } catch (err){
+    logger.error(`App - getFeeds Query error\n: ${err.message}`);
+    return res.status(500).send(`Error: ${err.message}`);
+    }
+};
