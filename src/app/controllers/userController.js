@@ -222,8 +222,7 @@ exports.signIn = async function (req, res) {
             );
 
             res.json({
-                //userInfo: userInfoRows[0].userID,
-                jwt: token,
+                result: {userIdx: userInfoRows[0].userIdx,jwt: token},
                 isSuccess: true,
                 code: 200,
                 message: "로그인 성공"
@@ -267,7 +266,7 @@ exports.signIn = async function (req, res) {
                 );
     
                 res.json({
-                    jwt: token,
+                    result: {userIdx: userInfoRows[0].userIdx,jwt: token},
                     isSuccess: true,
                     code: 200,
                     message: "로그인 성공"
@@ -310,7 +309,7 @@ exports.signIn = async function (req, res) {
                 );
     
                 res.json({
-                    jwt: token,
+                    result: {userIdx: userInfoRows[0].userIdx,jwt: token},
                     isSuccess: true,
                     code: 200,
                     message: "로그인 성공"
