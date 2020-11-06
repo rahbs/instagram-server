@@ -6,6 +6,45 @@ const commentDao = require('../dao/commentDao');
 const userDao = require('../dao/userDao');
 const jwt = require('jsonwebtoken');
 const secret_config = require('../../../config/secret');
+
+/**
+ update : 2020.11.5
+ 15.Get commentlist API = 댓글조회
+ **/
+exports.selectCommentList = async function (req, res) {
+    const feedID = req.params['feedId'];
+
+    try {
+        const userIdx = req.verifiedToken.id;
+        const selectCommentListParams = [feedID];
+        const selectCommentListRows = await commentDao.selectCommentListComment(selectCommentListParams);
+        return res.json({commentList : selectCommentList,
+            isSucess : true, code : 200, message : "댓글 조회 성공"});
+    } catch (error) {
+        logger.error(`App - InsertComment Query error\n: ${JSON.stringify(error)}`);
+
+            return false;
+    }
+}
+/**
+ update : 2020.11.5
+ 17.like comment API = 댓글좋아요/취소
+ **/
+exports.likeComment = async function (req, res) {
+    const commentID = req.params['commentId'];
+    try {
+        const userIdx = req.verifiedToken.id;
+        const likeCommentParams = [userIdx,commentID];
+        const likeCommentRows = await commentDao.likeComment(likeCommentParams);
+        if(likeCommentRows === 'Y') return res.json({like : "Y", isSucess : true, code : 200, message : "좋아요"});
+        else if(likeCommentRows === 'N') return res.json({like : "N", isSucess : true, code : 201, message : "좋아요 취소"});
+        
+    } catch (error) {
+        logger.error(`App - likeComment Query error\n: ${JSON.stringify(error)}`);
+
+            return false;
+    }
+}
 /**
  update : 2020.11.5
  18.Post comment API = 댓글생성
