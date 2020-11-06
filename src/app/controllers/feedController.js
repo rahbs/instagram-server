@@ -32,7 +32,7 @@ exports. getUserFeed= async function (req, res){
     const userIdxOfFeed = req.params['userIdx']; // 조회하려는 피드를 소유한 usrIdx
     // path variable로 들어온 usrIdx가 valid한지 체크
     const [isExistingUserIdx] = await userDao.isExistingUserIdx(userIdxOfFeed);
-    if(!Object.values(isExistingUserIdx[0])[0]){
+    if(!isExistingUserIdx[0].exist){
         return res.json({
             result: {},
             isSuccess: false,
@@ -47,13 +47,11 @@ exports. getUserFeed= async function (req, res){
     let relation;
     const [isFollowing] = await userDao.isFollowing(userIdx,userIdxOfFeed);
     const [isPrivateUserIdx] = await userDao.isPrivateUserIdx(userIdxOfFeed);
-    // console.log('isFollowing: ', Object.values(isFollowing[0])[0]);
-    // console.log('isPrivateUserIdx: ', Object.values(isPrivateUserIdx[0])[0]);
     if (userIdx == userIdxOfFeed) //내 계정:A
         relation = 'A';
-    else if(Object.values(isFollowing[0])[0]) //팔로잉하는 계정:B
+    else if(isFollowing[0].exist) //팔로잉하는 계정:B
         relation = 'B';
-    else if(!Object.values(isPrivateUserIdx[0])[0]) //팔로잉x and 공개계정:C
+    else if(!isPrivateUserIdx[0].exist) //팔로잉x and 공개계정:C
         relation = 'C';
     else // 팔로잉x and 비공개계정:D
         relation = 'D';
@@ -91,3 +89,5 @@ exports. getUserFeed= async function (req, res){
     return res.status(500).send(`Error: ${err.message}`);
     }
 };
+
+    
