@@ -128,7 +128,7 @@ async function isFollowing(userIdxA, userIdxB){
         const checkFollowingQUery = `
             select EXISTS(
                     SELECT * from follow
-                    WHERE followingUserIdx = ? and followedUserIdx = ?
+                    WHERE followingUserIdx = ? and followedUserIdx = ? and follow ='Y'
                    ) as exist;`;
  
         const checkFollowing = await connection.query(
