@@ -48,10 +48,10 @@ async function getUserInfo(userIdx){
     const connection = await pool.getConnection(async (conn) => conn);
     try{
         const getUserInfoQuery = `
-            SELECT user.userIdx as userIdx, user.userId as userId, user.name as userName,
+            SELECT profileImgUrl, user.userIdx as userIdx, user.userId as userId, user.name as userName,
                     profileIntro, profileWebSite,followingNum, followerNum, feedNum
             FROM
-                (SELECT userIdx, userId, name, profileIntro,profileWebSite
+                (SELECT profileImgUrl, userIdx, userId, name, profileIntro, profileWebSite
                     FROM user) as user
             JOIN
                 (SELECT user.userIdx, userId, COUNT(feed.userIdx) as feedNum
