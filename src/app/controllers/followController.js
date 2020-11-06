@@ -6,32 +6,33 @@ const followDao = require('../dao/followDao');
 const userDao = require('../dao/userDao');
 const jwt = require('jsonwebtoken');
 const secret_config = require('../../../config/secret');
+const { isPrivateUserIdx } = require('../dao/userDao');
 
+/**
+ update : 2020.11.6
+ 20.followRequest API = 팔로우요청
+ **/
 exports.requestFollow = async function (req,res) {
+    const {followUserIdx} = req.body;
 
     try {
         const userIdx = req.verifiedToken.id;
-        const requestFollowParams = [];
-        const requestFollowRows = await followDao.requestFollow(requestFollowParams);
+        const [isPrivateUser] = await userDao.isPrivateUserIdx(followUserIdx);
+        //비공개 유저인 경우
+        if(isPrivateUser[0].exist === 1){
+
+        }
+        else if(isPrivateUser[0].exist ===0) {
+            const requestFollowParams = [userIdx,followUserIdx];
+            const requestFollowRows = await followDao.requestFollow(requestFollowParams);
+        
+            if(requestFollowRows === 'Y') return res.json({follow : "Y",isSucess : true, code :200, message : "팔로우 성공"});
+            else if(requestFollowRows === 'N') return res.json({lfollow : "N", isSucess : true, code : 201, message : "팔로우 취소"});
+            
+        }
 
     } catch (error) {
         logger.error(`App - likeFeed Query error\n: ${JSON.stringify(error)}`);
         return false;
     }
 }
-
-
-// exports.likeFeed = async function (req, res) {
-//     const feedID = req.params['feedId'];
-//     try {
-//         const userIdx = req.verifiedToken.id;
-//         const likeFeedParams = [userIdx,feedID];
-//         const likeFeedRows = await commentDao.likeFeed(likeFeedParams);
-//         if(likeFeedRows === 'Y') return res.json({like : "Y", isSucess : true, code : 200, message : "좋아요"});
-//         else if(likeFeedRows === 'N') return res.json({like : "N", isSucess : true, code : 201, message : "좋아요 취소"});
-//     } catch (error) {
-//         logger.error(`App - likeFeed Query error\n: ${JSON.stringify(error)}`);
-
-//             return false;
-//     }
-// }
