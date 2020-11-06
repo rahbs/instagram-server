@@ -143,14 +143,18 @@ async function getFeeds(userIdx,selectedUserIdx){
                 ON heart.feedId = feed.id
             LEFT JOIN (select * from follow where follow = 'Y' and followingUserIdx = ?) as follow
                 ON heart.userIdx = follow.followedUserIdx
-            WHERE feed.userIdx IN (select followedUserIdx from follow where follow = 'Y' and followingUserIdx = ?)
+            WHERE feed.userIdx IN (SELECT followedUserIdx from follow where follow = 'Y' and followingUserIdx = ?
+            UNION
+            SELECT ? AS followedUserIdx)
             GROUP BY (feed.id)) as a
         LEFT JOIN
                 (SELECT feed.id as feedId__, heart.userIdx  as likedFollowingUserIdx,COUNT( heart.userIdx) as numLikedFollowingUser
                 FROM feed
                 LEFT JOIN (select * from heart where status = 'F' and isLiked = 'Y') as heart
                     ON heart.feedId = feed.id
-                JOIN (select * from follow where follow = 'Y' and followingUserIdx = ?) as follow
+                JOIN (SELECT followedUserIdx from follow where follow = 'Y' and followingUserIdx = ? 
+                        UNION
+                        SELECT ? AS followedUserIdx) as follow
                     ON heart.userIdx = follow.followedUserIdx
                 GROUP BY (feed.id)) as likefollower
             ON a.feedId_ = likefollower.feedId__
@@ -182,7 +186,7 @@ async function getFeeds(userIdx,selectedUserIdx){
         getFeedInfoQuery = getFeedInfoQuery+ ';';
         const [feedInfoList] = await connection.query(
             getFeedInfoQuery,
-            [userIdx,userIdx,userIdx,userIdx]
+            [userIdx,userIdx,userIdx,userIdx,userIdx,userIdx]
             );
 
         let result = []
