@@ -151,7 +151,7 @@ async function isPrivateUserIdx(userIdx){
             select EXISTS(
                 select * from user 
                 where userIdx = ? and isPrivate = 'Y' and isDeleted = 'N'
-                   );`;
+                   ) as exist;`;
  
         const checkPrivateUserIdx = await connection.query(
             checkPrivateUserIdxQuery,
