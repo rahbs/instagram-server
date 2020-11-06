@@ -28,6 +28,24 @@ exports.selectCommentList = async function (req, res) {
 }
 /**
  update : 2020.11.5
+ 16.like comment API = 댓글좋아요/취소
+ **/
+exports.likeFeed = async function (req, res) {
+    const feedID = req.params['feedId'];
+    try {
+        const userIdx = req.verifiedToken.id;
+        const likeFeedParams = [userIdx,feedID];
+        const likeFeedRows = await commentDao.likeFeed(likeFeedParams);
+        if(likeFeedRows === 'Y') return res.json({like : "Y", isSucess : true, code : 200, message : "좋아요"});
+        else if(likeFeedRows === 'N') return res.json({like : "N", isSucess : true, code : 201, message : "좋아요 취소"});
+    } catch (error) {
+        logger.error(`App - likeFeed Query error\n: ${JSON.stringify(error)}`);
+
+            return false;
+    }
+}
+/**
+ update : 2020.11.5
  17.like comment API = 댓글좋아요/취소
  **/
 exports.likeComment = async function (req, res) {

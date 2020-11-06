@@ -5,8 +5,9 @@ module.exports = function(app){
     //app.route('/signIn').post(user.signIn);
 
     //app.get('/check', jwtMiddleware, user.check);
-    app.route('/comment').post(jwtMiddleware, comment.createComment); //post할때 jwt검사는 어떻게?
+    app.route('/comment').post(jwtMiddleware, comment.createComment);
     app.delete('/comment/:commentId', jwtMiddleware ,comment.deleteComment);
     app.get('/feed/:feedId/comments',jwtMiddleware,comment.selectCommentList);
     app.route('/comment/:commentId/like').post(jwtMiddleware,comment.likeComment);
+    app.route('/feed/:feedId/like').post(jwtMiddleware,comment.likeFeed);
 };

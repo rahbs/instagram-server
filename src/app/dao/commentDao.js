@@ -82,7 +82,34 @@ async function likeComment(likeCommentParams) {
   
     return null;
   }
-
+//피드 좋아요/취소
+async function likeFeed(likeFeedParams) {
+    const connection = await pool.getConnection(async (conn) => conn);
+    
+    const likeFeedQuery = `insert into heart(userIdx,commentId,feedId,isLiked,status) values (?,0,?,'Y','F');`;
+    const likeFeedhateQuery = `update heart set isLiked = 'N' where userIdx = ? && feedId = ? && status ='F';`;
+    const likeFeedagainQuery = `update heart set isLiked = 'Y' where userIdx = ? && feedId = ? && status ='F';`;
+    const searchlikeFeedQuery = `select isLiked from heart where userIdx = ? && feedId = ? && status ='F';`;
+    
+    const [searchlikeFeedRows]= await connection.query(searchlikeFeedQuery, likeFeedParams);
+    
+    if(searchlikeFeedRows.length <1){
+        const [likeFeedRows] = await connection.query(likeFeedQuery, likeFeedParams);
+        connection.release();
+        return 'Y'
+    }
+    else if(searchlikeFeedRows[0].isLiked === 'Y'){
+        const [likeFeedRows] = await connection.query(likeFeedhateQuery, likeFeedParams);
+        connection.release();
+        return 'N'
+    }
+    else if(searchlikeFeedRows[0].isLiked === 'N'){
+        const [likeFeedRows] = await connection.query(likeFeedagainQuery, likeFeedParams);
+        connection.release();
+        return 'Y'
+    }    
+    return null;
+  }
 
 
 module.exports = {
@@ -92,5 +119,6 @@ module.exports = {
     selectCommentIsDeleted,
     selectCommentList,
     likeComment,
+    likeFeed,
   };
   
