@@ -137,7 +137,7 @@ async function getFeeds(userIdx,selectedUserIdx){
         #             ELSE CONCAT ('좋아요 ',likeNum,'개')
         #        END AS likeNum
         from
-            (SELECT feed.id as feedId_,feed.userIdx,feed.location, feed.caption, COUNT(heart.feedId) as likeNum
+            (SELECT feed.id as feedId_,feed.userIdx,feed.location, feed.caption, COUNT(heart.feedId) as likeNum,isDeleted
             FROM feed
             LEFT JOIN (select * from heart where status = 'F' and isLiked = 'Y') as heart
                 ON heart.feedId = feed.id
@@ -173,6 +173,7 @@ async function getFeeds(userIdx,selectedUserIdx){
                     ON comment.feedId = feed.id
                 GROUP BY (feed.id)) as comment
             ON comment.feedId = a.feedId_
+        WHERE a.isDeleted = 'N'
                     `;
         const getFeedImgUrls = `
         select feedImgUrl as imgUrl
@@ -182,7 +183,7 @@ async function getFeeds(userIdx,selectedUserIdx){
         where feed.id = ?;
                     `;
         if(selectedUserIdx) 
-            getFeedInfoQuery = getFeedInfoQuery + ` WHERE a.userIdx = ${selectedUserIdx}`;
+            getFeedInfoQuery = getFeedInfoQuery + ` and a.userIdx = ${selectedUserIdx}`;
         getFeedInfoQuery = getFeedInfoQuery+ ';';
         const [feedInfoList] = await connection.query(
             getFeedInfoQuery,
