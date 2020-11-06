@@ -23,7 +23,7 @@ exports.requestFollow = async function (req,res) {
         if(isPrivateUser[0].exist === 1){
             const requestFollowPrivateUser = await followDao.requestFollowPrivateUser(requestFollowParams);
             if(requestFollowPrivateUser === 'N') return res.json({follow : "N", isSucess : true, code : 201, message : "팔로우 취소"});
-            else return res.json({followId : requestFollowPrivateUser, isSucess : true, code : 200, message : "팔로우 요청"});
+            else return res.json({followId : requestFollowPrivateUser, isSucess : true, code : 202, message : "팔로우 요청"});
 
         }
         else if(isPrivateUser[0].exist ===0) {
