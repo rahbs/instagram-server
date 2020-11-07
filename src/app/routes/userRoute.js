@@ -10,4 +10,7 @@ module.exports = function(app){
     app.get('/userInfo', jwtMiddleware, user.getUserInfo);
     app.patch('/userInfo', jwtMiddleware, user.modifyUserInfo);
 
+    app.get('/accountType', jwtMiddleware, user.getAccountType);
+    app.route('/accountType').post(jwtMiddleware,user.changeAccaountType);
+
 };

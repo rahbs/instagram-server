@@ -157,6 +157,31 @@ exports.modifyUserInfo = async function (req, res) {
     return res.status(500).send(`Error: ${err.message}`);
     }
 }
+exports.getAccountType = async function (req, res){
+    const userIdx = req.verifiedToken.id;
+    const [getAccountType] = await userDao.getAccountType(userIdx);
+
+    return res.json({
+        result: getAccountType[0],
+        isSuccess: true,
+        code: 200,
+        message: "계정 공개 범위가 성공적으로 조회되었습니다."
+     });
+
+}
+exports.changeAccaountType = async function (req, res){
+    const userIdx = req.verifiedToken.id;
+
+    await userDao.changeAccountType(userIdx);
+    const [changedAccountType] = await userDao.getAccountType(userIdx);
+
+    return res.json({
+        result: changedAccountType[0],
+        isSuccess: true,
+        code: 200,
+        message: "계정 공개 범위가 성공적으로 변경되었습니다."
+     });
+}
 /**
  update : 2020.10.4
  01.signUp API = 회원가입

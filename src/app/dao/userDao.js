@@ -227,7 +227,6 @@ async function getUserInfo(userIdx){
   }
 }
 
-
 async function modifyUserInfo(userIdx,profileImgUrl, userName, userId, profileWebSite, profileIntro, email, phoneNum, gender){
   const connection = await pool.getConnection(async (conn) => conn);
   try{
@@ -255,6 +254,41 @@ async function modifyUserInfo(userIdx,profileImgUrl, userName, userId, profileWe
   }
 }
 
+async function getAccountType(userIdx){
+  const connection = await pool.getConnection(async (conn) => conn);
+  try{
+      const query = `select isPrivate from user where userIdx = ?`;
+
+      const res = await connection.query( query,[userIdx]);
+          
+      return res;
+  } catch(err){
+      console.log(err);
+  } finally{
+      connection.release();
+  }
+}
+async function changeAccountType(userIdx){
+  const connection = await pool.getConnection(async (conn) => conn);
+  try{
+      const [isPrivate] = await getAccountType(userIdx);
+      if(isPrivate[0].isPrivate=='Y'){
+        const query = `update user set isPrivate = 'N' where userIdx = ?`;
+        await connection.query(query,[userIdx])
+        }
+      else if(isPrivate[0].isPrivate=='N'){
+        const query = `update user set isPrivate = 'Y' where userIdx = ?`;
+        await connection.query(query,[userIdx])
+      }
+
+      const res = await getAccountType(userIdx);
+      return res;
+  } catch(err){
+      console.log(err);
+  } finally{
+      connection.release();
+  }
+}
 module.exports = {
   userEmailCheck,
   userIdCheck,
@@ -269,5 +303,7 @@ module.exports = {
   isExistingUserIdx,
   getUserInfo,
   modifyUserInfo,
-  getUserIdbyIdx
+  getUserIdbyIdx,
+  getAccountType,
+  changeAccountType
 };
