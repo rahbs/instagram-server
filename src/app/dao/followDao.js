@@ -79,6 +79,7 @@ async function acceptFollow(acceptFollowParams) {
     const acceptFollowQuery = `update followRequest set isAccepted = 'Y' where id=? && isDeleted = 'N';`;
     const [acceptFollowRows] = await connection.query(acceptFollowQuery,acceptFollowParams);
     connection.release();    
+    return acceptFollowRows;
 }
 async function selectRequestFollowbyUserId(selectRequestFollowbyUserIdParams) {
     const connection = await pool.getConnection(async (conn) => conn);
@@ -92,6 +93,14 @@ async function selectRequestFollowbyUserId(selectRequestFollowbyUserIdParams) {
     connection.release();    
     return selectRequestFollowbyUserIdRows[0].Id
 }
+//팔로우 요청 거절
+async function refuseFollow(refuseFollowParams) {
+    const connection = await pool.getConnection(async (conn) => conn);
+    const refuseFollowQuery = `update followRequest set isDeleted = 'Y' where id=? && isDeleted = 'N';`;
+    const [refuseFollowRows] = await connection.query(refuseFollowQuery,refuseFollowParams);
+    connection.release();    
+    return refuseFollowRows;
+}
 
 
 
@@ -101,4 +110,5 @@ module.exports = {
     requestFollowPrivateUser,
     acceptFollow,
     selectRequestFollowbyUserId,
+    refuseFollow,
 }

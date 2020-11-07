@@ -50,6 +50,9 @@ exports.acceptFollow = async function (req,res) {
         const selectRequestFollowbyUserIdRows = await followDao.selectRequestFollowbyUserId(acceptFollowParams);
         if(userIdx === selectRequestFollowbyUserIdRows){
             const acceptFollowRows = await followDao.acceptFollow(acceptFollowParams);
+            if(acceptFollowRows.length<1){
+                return res.json({isSucess : false, code :400, message : "요청이 없습니다."});
+            }
         
             return res.json({follow : "팔로잉" ,isSucess : true, code :200, message : "팔로우 요청 수락"});
         }
@@ -60,6 +63,35 @@ exports.acceptFollow = async function (req,res) {
 
     } catch (error) {
         logger.error(`App - acceptFollow Query error\n: ${JSON.stringify(error)}`);
+        connection.release();
+        return false;
+    }
+}
+/**
+ update : 2020.11.8
+ 22. refuseFollowRequest API = 팔로우 요청거절
+ **/
+exports.refuseFollow = async function (req,res) {
+    const followRequestId = req.params['followRequestId'];
+    try {
+        const userIdx = req.verifiedToken.id;
+        const refuseFollowParams = [followRequestId];
+        const selectRequestFollowbyUserIdRows = await followDao.selectRequestFollowbyUserId(refuseFollowParams);
+        if(userIdx === selectRequestFollowbyUserIdRows){
+            const refuseFollowRows = await followDao.refuseFollow(refuseFollowParams);
+            if(refuseFollowRows.length<1){
+                return res.json({isSucess : false, code :300, message : "요청이 없습니다."});
+            }
+        
+            return res.json({follow : "refuse" ,isSucess : true, code :200, message : "팔로우 요청 거절"});
+        }
+        else{
+            return res.json({isSucess : false, code :400, message : "권한이 없습니다."});
+        }
+        
+
+    } catch (error) {
+        logger.error(`App - refuseFollow Query error\n: ${JSON.stringify(error)}`);
         connection.release();
         return false;
     }
