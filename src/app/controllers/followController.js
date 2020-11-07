@@ -69,7 +69,7 @@ exports.acceptFollow = async function (req,res) {
 }
 /**
  update : 2020.11.8
- 22. refuseFollowRequest API = 팔로우 요청거절
+ 23. refuseFollowRequest API = 팔로우 요청거절
  **/
 exports.refuseFollow = async function (req,res) {
     const followRequestId = req.params['followRequestId'];
@@ -92,6 +92,37 @@ exports.refuseFollow = async function (req,res) {
 
     } catch (error) {
         logger.error(`App - refuseFollow Query error\n: ${JSON.stringify(error)}`);
+        connection.release();
+        return false;
+    }
+}
+/**
+ update : 2020.11.8
+ 24. setCloseFriend API = 친한 친구 설정
+ **/
+exports.setCloseFriend = async function (req,res) {
+    const userId = req.params['userIdx'];
+    try {
+        const userIdx = req.verifiedToken.id;
+        const isValidFollowParams = [userIdx,userId];
+        const isValidFollowRows = await followDao.isValidFollow(isValidFollowParams);
+        console.log(isValidFollowRows);
+        if(isValidFollowRows === 0){
+            return res.json({isSucess : false, code : 300, message : "팔로워가 아닌 유저입니다."});
+        }
+        else{
+            if(isValidFollowParams[0] === userIdx){
+                const setCloseFriendParams = [userIdx,userId];
+                const setCloseFriendRows = await followDao.setCloseFriend(setCloseFriendParams);
+                return res.json({isSucess : true, code : 200, message : "친한 친구 설정 성공"});
+            }
+            else{
+                return res.json({isSucess : false, code : 301, message : "권한이 없습니다."})
+            }
+        }
+
+    } catch (error) {
+        logger.error(`App - setCloseFriend Query error\n: ${JSON.stringify(error)}`);
         connection.release();
         return false;
     }

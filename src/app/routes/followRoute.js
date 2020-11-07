@@ -8,4 +8,5 @@ module.exports = function(app){
     app.route('/followRequest').post(jwtMiddleware,follow.requestFollow);
     app.route('/followAccept/:followRequestId').post(jwtMiddleware,follow.acceptFollow);
     app.delete('/followAccept/:followRequestId',jwtMiddleware,follow.refuseFollow);
+    app.route('/user/:userIdx/closeFriend').post(jwtMiddleware,follow.setCloseFriend);
 };

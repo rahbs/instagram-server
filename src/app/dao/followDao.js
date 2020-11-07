@@ -101,6 +101,38 @@ async function refuseFollow(refuseFollowParams) {
     connection.release();    
     return refuseFollowRows;
 }
+//친한 친구 설정
+async function setCloseFriend(setCloseFriendParams) {
+    try {   
+        const connection = await pool.getConnection(async (conn) => conn);
+        try {
+            const setCloseFriendQuery = `update follow set isCloseFriend = 'Y' where followedUserIdx = ? && followingUserIdx = ?;`;
+            const [setCloseFriendRows] = await connection.query(setCloseFriendQuery,setCloseFriendParams);
+            connection.release();    
+            return setCloseFriendRows;
+        } catch (error) {
+            logger.error(`App - setCloseFriend function Query error\n: ${JSON.stringify(error)}`);
+            connection.release();
+            return false;
+        }
+    } catch (error) {
+        logger.error(`App - setCloseFriend connection error\n: ${JSON.stringify(error)}`);
+        connection.release();
+        return false;
+    }
+    
+    
+}
+async function isValidFollow(isValidFollowParams){
+    const connection = await pool.getConnection(async (conn) => conn);
+    const isValidFollowQuery = `select followedUserIdx as Id from follow where followedUserIdx = ? && followingUserIdx = ? && follow = 'Y';`;
+    const [isValidFollowRows] = await connection.query(isValidFollowQuery,isValidFollowParams);
+    connection.release;
+    if(isValidFollowRows.length <1){
+        return 0;
+    }
+    return isValidFollowRows[0].Id;
+}
 
 
 
@@ -111,4 +143,6 @@ module.exports = {
     acceptFollow,
     selectRequestFollowbyUserId,
     refuseFollow,
+    setCloseFriend,
+    isValidFollow,
 }
