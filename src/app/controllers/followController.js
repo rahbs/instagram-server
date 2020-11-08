@@ -106,7 +106,6 @@ exports.setCloseFriend = async function (req,res) {
         const userIdx = req.verifiedToken.id;
         const isValidFollowParams = [userIdx,userId];
         const isValidFollowRows = await followDao.isValidFollow(isValidFollowParams);
-        console.log(isValidFollowRows);
         if(isValidFollowRows === 0){
             return res.json({isSucess : false, code : 300, message : "팔로워가 아닌 유저입니다."});
         }
@@ -114,6 +113,9 @@ exports.setCloseFriend = async function (req,res) {
             if(isValidFollowParams[0] === userIdx){
                 const setCloseFriendParams = [userIdx,userId];
                 const setCloseFriendRows = await followDao.setCloseFriend(setCloseFriendParams);
+                if(setCloseFriendRows === 'N'){
+                    return res.json({isSucess : true, code : 201, message : "친한 친구 설정 취소"})
+                }
                 return res.json({isSucess : true, code : 200, message : "친한 친구 설정 성공"});
             }
             else{

@@ -106,10 +106,20 @@ async function setCloseFriend(setCloseFriendParams) {
     try {   
         const connection = await pool.getConnection(async (conn) => conn);
         try {
+            const selectCloseFriend = `select isCloseFriend from follow where followedUserIdx = ? && followingUserIdx = ?;`;
             const setCloseFriendQuery = `update follow set isCloseFriend = 'Y' where followedUserIdx = ? && followingUserIdx = ?;`;
-            const [setCloseFriendRows] = await connection.query(setCloseFriendQuery,setCloseFriendParams);
-            connection.release();    
-            return setCloseFriendRows;
+            const setCloseFriendCancelQuery = `update follow set isCloseFriend = 'N' where followedUserIdx = ? && followingUserIdx = ?;`;
+            const [selectCloseFriendRows] = await connection.query(selectCloseFriend,setCloseFriendParams);
+            if(selectCloseFriendRows[0].isCloseFriend==='N'){
+                const [setCloseFriendRows] = await connection.query(setCloseFriendQuery,setCloseFriendParams);
+                connection.release(); 
+                return 'Y';
+            }
+            else{
+                const [setCloseFriendRows] = await connection.query(setCloseFriendCancelQuery,setCloseFriendParams);
+                connection.release(); 
+                return 'N';
+            }
         } catch (error) {
             logger.error(`App - setCloseFriend function Query error\n: ${JSON.stringify(error)}`);
             connection.release();
@@ -120,8 +130,6 @@ async function setCloseFriend(setCloseFriendParams) {
         connection.release();
         return false;
     }
-    
-    
 }
 async function isValidFollow(isValidFollowParams){
     const connection = await pool.getConnection(async (conn) => conn);
