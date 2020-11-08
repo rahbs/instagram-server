@@ -119,7 +119,7 @@ exports.setCloseFriend = async function (req,res) {
                 return res.json({isSucess : true, code : 200, message : "친한 친구 설정 성공"});
             }
             else{
-                return res.json({isSucess : false, code : 301, message : "권한이 없습니다."})
+                return res.json({isSucess : false, code : 403, message : "권한이 없습니다."})
             }
         }
 
