@@ -289,6 +289,8 @@ async function changeAccountType(userIdx){
       connection.release();
   }
 }
+
+
 module.exports = {
   userEmailCheck,
   userIdCheck,
