@@ -209,11 +209,59 @@ async function getFeeds(userIdx,selectedUserIdx){
         connection.release();
     }    
 }
+//존재하는 feedId인지 체크
+async function isExistingfeedId(feedId){
+    const connection = await pool.getConnection(async (conn) => conn);
+    try{
+        const query = `
+            select EXISTS(
+                select * from feed 
+                where id = ? and isDeleted = 'N'
+                    ) as exist;`;
+
+        const res = await connection.query(query, [feedId]);
+        return res;
+    } catch(err){
+        console.log(err);
+    } finally{
+        connection.release();
+    }
+}
+
+async function getUserIdxOfFeed(feedId){
+    const connection = await pool.getConnection(async (conn) => conn);
+    try{
+        const query = `select userIdx from feed where id = ? and isDeleted='N'`;
+        const userIdx = await connection.query(query,[feedId]);
+        return userIdx;
+  
+    } catch(err){
+        console.log(err);
+    } finally{
+        connection.release();
+    }
+}
+async function deleteFeed(feedId){
+    const connection = await pool.getConnection(async (conn) => conn);
+    try{
+        const query = `update feed set isDeleted = 'Y' where id = ? and isDeleted = 'N'`;
+        const userIdx = await connection.query(query,[feedId]);
+        return userIdx;
+  
+    } catch(err){
+        console.log(err);
+    } finally{
+        connection.release();
+    }
+}
 
 //async function uploadFeed
 module.exports = {
     uploadFeed,
     getUserInfo,
     getUserFeedList,
-    getFeeds
+    getFeeds,
+    getUserIdxOfFeed,
+    isExistingfeedId,
+    deleteFeed
 };
