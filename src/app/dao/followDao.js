@@ -148,16 +148,32 @@ async function hideFeedOrStory(kind,userIdx,userId){
     if(kind==='F'){
         const selecthideFeedQuery = `select muteFeed from follow where followedUserIdx = ? && followingUserIdx = ?;`;
         const hideFeedQuery = `update follow set muteFeed ='Y' where followedUserIdx = ? && followingUserIdx = ?;`;
+        const hideFeedCancelQuery = `update follow set muteFeed ='N' where followedUserIdx = ? && followingUserIdx = ?;`;
+        const [selecthideFeedRows] = await connection.query(selecthideFeedQuery,hideFeedOrStoryParams);
+        if(selecthideFeedRows[0].muteFeed === 'Y'){
+            const [hideFeedOrStoryRows] = await connection.query(hideFeedCancelQuery,hideFeedOrStoryParams);
+            connection.release;
+            return 'FN'
+        }
         const [hideFeedOrStoryRows] = await connection.query(hideFeedQuery,hideFeedOrStoryParams);
         connection.release;
-        return 'F';
+        return 'FY';
     }
     else if(kind==='S'){
+        const selecthideStoryQuery = `select muteStory from follow where followedUserIdx = ? && followingUserIdx = ?;`;
         const hideStoryQuery = `update follow set muteStory ='Y' where followedUserIdx = ? && followingUserIdx = ?;`;
+        const hideStoryCancelQuery = `update follow set muteStory ='N' where followedUserIdx = ? && followingUserIdx = ?;`;
+        const [selecthideStoryRows] = await connection.query(selecthideStoryQuery,hideFeedOrStoryParams);
+        if(selecthideStoryRows[0].muteStory === 'Y'){
+            const [hideFeedOrStoryRows] = await connection.query(hideStoryCancelQuery,hideFeedOrStoryParams);
+            connection.release();
+            return 'SN'
+        }
         const [hideFeedOrStoryRows] = await connection.query(hideStoryQuery,hideFeedOrStoryParams);
         connection.release;
-        return 'S';
+        return 'SY';
     }
+    connection.release();
     return ;
 }
 

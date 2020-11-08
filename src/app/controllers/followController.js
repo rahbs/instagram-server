@@ -147,11 +147,17 @@ exports.hideFeedOrStory = async function (req,res) {
             if(isValidFollowParams[0] === userIdx){
                 const hideFeedOrStoryParams = [kind,userIdx,userId];
                 const hideFeedOrStoryRows = await followDao.hideFeedOrStory(kind,userIdx,userId);
-                if(hideFeedOrStoryRows === 'S'){
-                    return res.json({isSucess : true, code : 201, message : "스토리 숨김 설정 성공"})
+                if(hideFeedOrStoryRows === 'SY'){
+                    return res.json({isSucess : true, code : 210, message : "스토리 숨김 설정 성공"})
                 }
-                else if(hideFeedOrStoryRows === 'F'){
+                else if(hideFeedOrStoryRows === 'SN'){
+                    return res.json({isSucess : true, code : 211, message : "스토리 숨김 설정 취소"})
+                }
+                else if(hideFeedOrStoryRows === 'FY'){
                     return res.json({isSucess : true, code : 200, message : "피드 숨김 설정 성공"});
+                }
+                else if(hideFeedOrStoryRows === 'FN'){
+                    return res.json({isSucess : true, code : 201, message : "피드 숨김 설정 취소"});
                 }
                 else{
                     return res.json({isSucess : false, code : 301, message : "유효하지 않은 쿼리스트링입니다."});
