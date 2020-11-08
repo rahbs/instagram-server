@@ -129,3 +129,43 @@ exports.setCloseFriend = async function (req,res) {
         return false;
     }
 }
+/**
+ update : 2020.11.9
+ 25. hideFeedOrStory API = 피드/스토리 숨김
+ **/
+exports.hideFeedOrStory = async function (req,res) {
+    const userId = req.params['userIdx'];
+    const kind = req.query.kind;
+    try {
+        const userIdx = req.verifiedToken.id;
+        const isValidFollowParams = [userIdx,userId];
+        const isValidFollowRows = await followDao.isValidFollow(isValidFollowParams);
+        if(isValidFollowRows === 0){
+            return res.json({isSucess : false, code : 300, message : "팔로워가 아닌 유저입니다."});
+        }
+        else{
+            if(isValidFollowParams[0] === userIdx){
+                const hideFeedOrStoryParams = [kind,userIdx,userId];
+                const hideFeedOrStoryRows = await followDao.hideFeedOrStory(kind,userIdx,userId);
+                if(hideFeedOrStoryRows === 'S'){
+                    return res.json({isSucess : true, code : 201, message : "스토리 숨김 설정 성공"})
+                }
+                else if(hideFeedOrStoryRows === 'F'){
+                    return res.json({isSucess : true, code : 200, message : "피드 숨김 설정 성공"});
+                }
+                else{
+                    return res.json({isSucess : false, code : 301, message : "유효하지 않은 쿼리스트링입니다."});
+                }
+                
+            }
+            else{
+                return res.json({isSucess : false, code : 403, message : "권한이 없습니다."})
+            }
+        }
+
+    } catch (error) {
+        logger.error(`App - hideFeedOrStory Query error\n: ${JSON.stringify(error)}`);
+        connection.release();
+        return false;
+    }
+}

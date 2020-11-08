@@ -106,10 +106,10 @@ async function setCloseFriend(setCloseFriendParams) {
     try {   
         const connection = await pool.getConnection(async (conn) => conn);
         try {
-            const selectCloseFriend = `select isCloseFriend from follow where followedUserIdx = ? && followingUserIdx = ?;`;
+            const selectCloseFriendQuery = `select isCloseFriend from follow where followedUserIdx = ? && followingUserIdx = ?;`;
             const setCloseFriendQuery = `update follow set isCloseFriend = 'Y' where followedUserIdx = ? && followingUserIdx = ?;`;
             const setCloseFriendCancelQuery = `update follow set isCloseFriend = 'N' where followedUserIdx = ? && followingUserIdx = ?;`;
-            const [selectCloseFriendRows] = await connection.query(selectCloseFriend,setCloseFriendParams);
+            const [selectCloseFriendRows] = await connection.query(selectCloseFriendQuery,setCloseFriendParams);
             if(selectCloseFriendRows[0].isCloseFriend==='N'){
                 const [setCloseFriendRows] = await connection.query(setCloseFriendQuery,setCloseFriendParams);
                 connection.release(); 
@@ -141,6 +141,25 @@ async function isValidFollow(isValidFollowParams){
     }
     return isValidFollowRows[0].Id;
 }
+// 해당 유저의 게시물 혹은 스토리 숨기기
+async function hideFeedOrStory(kind,userIdx,userId){
+    const connection = await pool.getConnection(async (conn) => conn);
+    const hideFeedOrStoryParams = [userIdx,userId];
+    if(kind==='F'){
+        const selecthideFeedQuery = `select muteFeed from follow where followedUserIdx = ? && followingUserIdx = ?;`;
+        const hideFeedQuery = `update follow set muteFeed ='Y' where followedUserIdx = ? && followingUserIdx = ?;`;
+        const [hideFeedOrStoryRows] = await connection.query(hideFeedQuery,hideFeedOrStoryParams);
+        connection.release;
+        return 'F';
+    }
+    else if(kind==='S'){
+        const hideStoryQuery = `update follow set muteStory ='Y' where followedUserIdx = ? && followingUserIdx = ?;`;
+        const [hideFeedOrStoryRows] = await connection.query(hideStoryQuery,hideFeedOrStoryParams);
+        connection.release;
+        return 'S';
+    }
+    return ;
+}
 
 
 
@@ -153,4 +172,5 @@ module.exports = {
     refuseFollow,
     setCloseFriend,
     isValidFollow,
+    hideFeedOrStory,
 }
