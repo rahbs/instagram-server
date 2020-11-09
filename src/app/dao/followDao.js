@@ -77,9 +77,44 @@ async function requestFollowPrivateUser(requestFollowPrivateUserParams) {
 async function acceptFollow(acceptFollowParams) {
     const connection = await pool.getConnection(async (conn) => conn);
     const acceptFollowQuery = `update followRequest set isAccepted = 'Y' where id=? && isDeleted = 'N';`;
-    const [acceptFollowRows] = await connection.query(acceptFollowQuery,acceptFollowParams);
-    connection.release();    
-    return acceptFollowRows;
+
+    const selectFollowQuery = `select follow from follow where followingUserIdx = ? && followedUserIdx = ?;`;
+    const requestFollowagainQuery = `update follow set follow = 'Y' where followingUserIdx = ? && followedUserIdx = ?;`;
+    const requestFollowQuery =`insert into follow(followingUserIdx, followedUserIdx) values(?,?) ;`;
+
+    const findIdQuery = `select requestingUserIdx as ingId, requestedUserIdx as edId from followRequest where id=?`;
+
+        
+    // const [acceptFollowRows] = await connection.query(acceptFollowQuery,acceptFollowParams);
+    //     const [findIdQueryRows] = await connection.query(findIdQuery,acceptFollowParams);
+    //     requestFollowParams = [findIdQueryRows[0].ingId,findIdQueryRows[0].edId];
+    //     const [selectFollowRows] = await connection.query(selectFollowQuery,requestFollowParams);
+    //     if(selectFollowRows.length < 1){
+    //         const [requestFollowRows] = await connection.query(requestFollowQuery,requestFollowParams);
+    //     } else if(selectFollowRows[0].follow === 'N'){
+    //         const [requestFollowRows] = await connection.query(requestFollowagainQuery,requestFollowParams);
+    //     }
+    //     return acceptFollowRows;
+    await conn.beginTransaction();
+    try {
+        const [acceptFollowRows] = await connection.query(acceptFollowQuery,acceptFollowParams);
+        const [findIdQueryRows] = await connection.query(findIdQuery,acceptFollowParams);
+        requestFollowParams = [findIdQueryRows[0].ingId,findIdQueryRows[0].edId];
+        const [selectFollowRows] = await connection.query(selectFollowQuery,requestFollowParams);
+        if(selectFollowRows.length < 1){
+            const [requestFollowRows] = await connection.query(requestFollowQuery,requestFollowParams);
+        } else if(selectFollowRows[0].follow === 'N'){
+            const [requestFollowRows] = await connection.query(requestFollowagainQuery,requestFollowParams);
+        }
+        await conn.commit();
+        return acceptFollowRows;
+    } catch (error) {
+        logger.error(`App - acceptFollow Transaction Query error\n: ${JSON.stringify(error)}`);
+         await conn.rollback()
+    }finally{
+        connection.release();
+    }
+    
 }
 async function selectRequestFollowbyUserId(selectRequestFollowbyUserIdParams) {
     const connection = await pool.getConnection(async (conn) => conn);

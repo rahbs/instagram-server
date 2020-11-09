@@ -50,6 +50,7 @@ exports.acceptFollow = async function (req,res) {
         const selectRequestFollowbyUserIdRows = await followDao.selectRequestFollowbyUserId(acceptFollowParams);
         if(userIdx === selectRequestFollowbyUserIdRows){
             const acceptFollowRows = await followDao.acceptFollow(acceptFollowParams);
+            //console.log(acceptFollowRows);
             if(acceptFollowRows.length<1){
                 return res.json({isSucess : false, code :400, message : "요청이 없습니다."});
             }
