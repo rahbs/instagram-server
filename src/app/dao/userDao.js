@@ -289,6 +289,8 @@ async function changeAccountType(userIdx){
       connection.release();
   }
 }
+// 유저검색
+
 
 
 module.exports = {

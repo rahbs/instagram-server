@@ -83,20 +83,8 @@ async function acceptFollow(acceptFollowParams) {
     const requestFollowQuery =`insert into follow(followingUserIdx, followedUserIdx) values(?,?) ;`;
 
     const findIdQuery = `select requestingUserIdx as ingId, requestedUserIdx as edId from followRequest where id=?`;
-
-        
-    // const [acceptFollowRows] = await connection.query(acceptFollowQuery,acceptFollowParams);
-    //     const [findIdQueryRows] = await connection.query(findIdQuery,acceptFollowParams);
-    //     requestFollowParams = [findIdQueryRows[0].ingId,findIdQueryRows[0].edId];
-    //     const [selectFollowRows] = await connection.query(selectFollowQuery,requestFollowParams);
-    //     if(selectFollowRows.length < 1){
-    //         const [requestFollowRows] = await connection.query(requestFollowQuery,requestFollowParams);
-    //     } else if(selectFollowRows[0].follow === 'N'){
-    //         const [requestFollowRows] = await connection.query(requestFollowagainQuery,requestFollowParams);
-    //     }
-    //     return acceptFollowRows;
-    await conn.beginTransaction();
     try {
+        await connection.beginTransaction();
         const [acceptFollowRows] = await connection.query(acceptFollowQuery,acceptFollowParams);
         const [findIdQueryRows] = await connection.query(findIdQuery,acceptFollowParams);
         requestFollowParams = [findIdQueryRows[0].ingId,findIdQueryRows[0].edId];
@@ -106,11 +94,11 @@ async function acceptFollow(acceptFollowParams) {
         } else if(selectFollowRows[0].follow === 'N'){
             const [requestFollowRows] = await connection.query(requestFollowagainQuery,requestFollowParams);
         }
-        await conn.commit();
+        await connection.commit();
         return acceptFollowRows;
     } catch (error) {
         logger.error(`App - acceptFollow Transaction Query error\n: ${JSON.stringify(error)}`);
-         await conn.rollback()
+         await connection.rollback()
     }finally{
         connection.release();
     }
