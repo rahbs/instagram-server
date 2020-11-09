@@ -213,7 +213,22 @@ async function cancelFollowing(cancelFollowParams) {
         connection.release();    
         return cancelFollowRows;
     }
-    
+}
+
+//팔로워 삭제
+async function cancelFollower(cancelFollowerParams) {
+    const connection = await pool.getConnection(async (conn) => conn);
+    const selectFollowQuery = `select follow from follow where followedUserIdx = ? && followingUserIdx = ?;`;
+    const [selectFollowRows] = await connection.query(selectFollowQuery,cancelFollowerParams);
+    if(selectFollowRows.length < 1){
+
+    }
+    else{
+        const cancelFollowerQuery = `update follow set follow = 'N' where followedUserIdx = ? && followingUserIdx = ?;`;
+        const [cancelFollowerRows] = await connection.query(cancelFollowerQuery,cancelFollowerParams);
+        connection.release();    
+        return cancelFollowerRows;
+    }
 }
 
 
@@ -229,5 +244,6 @@ module.exports = {
     isValidFollow,
     hideFeedOrStory,
     cancelFollowing,
+    cancelFollower,
 
 }
