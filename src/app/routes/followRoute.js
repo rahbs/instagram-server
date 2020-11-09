@@ -12,4 +12,5 @@ module.exports = function(app){
     app.route('/user/:userIdx/mute').post(jwtMiddleware,follow.hideFeedOrStory);
     app.delete('/user/:userIdx/following',jwtMiddleware,follow.cancelFollowing);
     app.delete('/user/:userIdx/follower',jwtMiddleware,follow.cancelFollower);
+    app.route('/user/:userIdx/block').post(jwtMiddleware,follow.userBlock);
 };

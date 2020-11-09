@@ -231,6 +231,44 @@ async function cancelFollower(cancelFollowerParams) {
     }
 }
 
+//차단
+async function userBlock(userBlockParams) {
+    try {
+        const connection = await pool.getConnection(async (conn) => conn);
+        try {
+            const selectFollowQuery = `select follow from follow where followedUserIdx = ? && followingUserIdx = ?;`;
+            const [selectFollowRows] = await connection.query(selectFollowQuery,userBlockParams);
+            if(selectFollowRows.length < 1){
+
+            }
+            else{
+                const selectisBlockedQuery = `select isBlocked from follow where followedUserIdx = ? && followingUserIdx = ?;`;
+                const userBlockQuery = `update follow set isBlocked = 'Y' where followedUserIdx = ? && followingUserIdx = ?;`;
+                const userBlockCancelQuery = `update follow set isBlocked = 'N' where followedUserIdx = ? && followingUserIdx = ?;`;
+                const [selectisBlockedRows] = await connection.query(selectisBlockedQuery, userBlockParams);
+                if(selectisBlockedRows[0].isBlocked==='Y'){
+                    const [userBlockRows] = await connection.query(userBlockCancelQuery,userBlockParams);
+                    return 'N';
+                }
+                else if(selectisBlockedRows[0].isBlocked==='N'){
+                    const [userBlockRows] = await connection.query(userBlockQuery,userBlockParams);
+                    return 'Y';
+                }
+                connection.release();
+                return;
+        }
+        } catch (error) {
+            logger.error(`App - userBlock function error\n: ${JSON.stringify(error)}`);
+            connection.release();
+            return false;
+        }
+    } catch (error) {
+        logger.error(`App - userBlock connection error\n: ${JSON.stringify(error)}`);
+        connection.release();
+        return false;
+    }
+}
+
 
 
 
@@ -245,5 +283,6 @@ module.exports = {
     hideFeedOrStory,
     cancelFollowing,
     cancelFollower,
+    userBlock,
 
 }
