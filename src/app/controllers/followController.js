@@ -175,3 +175,34 @@ exports.hideFeedOrStory = async function (req,res) {
         return false;
     }
 }
+/**
+ update : 2020.11.9
+ 26. cancelFollowing API = 팔로잉 취소
+ **/
+exports.cancelFollowing = async function (req,res) {
+    const userId = req.params['userIdx'];
+    try {
+        const userIdx = req.verifiedToken.id;
+        const isValidFollowParams = [userId,userIdx];
+        const isValidFollowRows = await followDao.isValidFollow(isValidFollowParams);
+        if(isValidFollowRows === 0){
+            return res.json({isSucess : false, code : 300, message : "팔로우 상태가 아닌 유저입니다."});
+        }
+        else{
+            if(isValidFollowParams[0] === userId){
+                const cancelFollowingParams = [userId,userIdx];
+                const cancelFollowingRows = await followDao.cancelFollowing(cancelFollowingParams);
+                return res.json({isSucess : true, code : 200, message : "팔로잉 취소"})
+                
+            }
+            else{
+                return res.json({isSucess : false, code : 403, message : "권한이 없습니다."})
+            }
+        }
+
+    } catch (error) {
+        logger.error(`App - cancelFollowing Query error\n: ${JSON.stringify(error)}`);
+        connection.release();
+        return false;
+    }
+}

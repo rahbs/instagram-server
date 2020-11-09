@@ -176,6 +176,22 @@ async function hideFeedOrStory(kind,userIdx,userId){
     connection.release();
     return ;
 }
+//팔로우 취소
+async function cancelFollowing(cancelFollowParams) {
+    const connection = await pool.getConnection(async (conn) => conn);
+    const selectFollowQuery = `select follow from follow where followedUserIdx = ? && followingUserIdx = ?;`;
+    const [selectFollowRows] = await connection.query(selectFollowQuery,cancelFollowParams);
+    if(selectFollowRows.length < 1){
+
+    }
+    else{
+        const cancelFollowQuery = `update follow set follow = 'N' where followedUserIdx = ? && followingUserIdx = ?;`;
+        const [cancelFollowRows] = await connection.query(cancelFollowQuery,cancelFollowParams);
+        connection.release();    
+        return cancelFollowRows;
+    }
+    
+}
 
 
 
@@ -189,4 +205,6 @@ module.exports = {
     setCloseFriend,
     isValidFollow,
     hideFeedOrStory,
+    cancelFollowing,
+
 }
