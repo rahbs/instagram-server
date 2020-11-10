@@ -12,5 +12,5 @@ module.exports = function(app){
 
     app.get('/accountType', jwtMiddleware, user.getAccountType);
     app.route('/accountType').post(jwtMiddleware,user.changeAccaountType);
-
+    app.get('/users',jwtMiddleware,user.selectUserbyUserId);
 };

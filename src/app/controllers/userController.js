@@ -416,6 +416,35 @@ exports.signIn = async function (req, res) {
         }
 };
 
+/**
+ update : 2020.11.10
+ 30.selectUser API = 유저 검색
+ **/
+exports.selectUserbyUserId = async function (req, res) {
+    const userId = req.query.userId;
+    const userIdx = req.verifiedToken.id;
+    try {
+        const selectUserbyIdParams = [userIdx,userId];
+        console.log(selectUserbyIdParams)
+        const [selectUserbyIdRows] = await userDao.selectUserbyUserId(selectUserbyIdParams);
+        return res.json({
+            userIdx : selectUserbyIdRows[0].userIdx,
+            userId : selectUserbyIdRows[0].userId,
+            profileImgUrl : selectUserbyIdRows[0].profileImgUrl,
+            name : selectUserbyIdRows[0].name,
+            follow : selectUserbyIdRows[0].follow,
+            isSuccess: true,
+            code : 200,
+            message : "유저 조회 성공"
+        })
+        
+    } catch (error) {
+        logger.error(`App - SignIn Query error\n: ${JSON.stringify(error)}`);
+        connection.release();
+        return false;
+    }
+};
+
 
 /**
  update : 2019.09.23

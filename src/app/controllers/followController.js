@@ -58,7 +58,7 @@ exports.acceptFollow = async function (req,res) {
             return res.json({follow : "팔로잉" ,isSucess : true, code :200, message : "팔로우 요청 수락"});
         }
         else{
-            return res.json({isSucess : false, code :400, message : "권한이 없습니다."});
+            return res.json({isSucess : false, code :402, message : "권한이 없습니다."});
         }
         
 
@@ -120,7 +120,7 @@ exports.setCloseFriend = async function (req,res) {
                 return res.json({isSucess : true, code : 200, message : "친한 친구 설정 성공"});
             }
             else{
-                return res.json({isSucess : false, code : 403, message : "권한이 없습니다."})
+                return res.json({isSucess : false, code : 402, message : "권한이 없습니다."})
             }
         }
 
@@ -166,7 +166,7 @@ exports.hideFeedOrStory = async function (req,res) {
                 
             }
             else{
-                return res.json({isSucess : false, code : 403, message : "권한이 없습니다."})
+                return res.json({isSucess : false, code : 402, message : "권한이 없습니다."})
             }
         }
 
@@ -197,7 +197,7 @@ exports.cancelFollowing = async function (req,res) {
                 
             }
             else{
-                return res.json({isSucess : false, code : 403, message : "권한이 없습니다."})
+                return res.json({isSucess : false, code : 402, message : "권한이 없습니다."})
             }
         }
 
@@ -228,7 +228,7 @@ exports.cancelFollower = async function (req,res) {
                 
             }
             else{
-                return res.json({isSucess : false, code : 403, message : "권한이 없습니다."})
+                return res.json({isSucess : false, code : 402, message : "권한이 없습니다."})
             }
         }
 
@@ -264,7 +264,7 @@ exports.userBlock = async function (req,res) {
                 
             }
             else{
-                return res.json({isSucess : false, code : 403, message : "권한이 없습니다."})
+                return res.json({isSucess : false, code : 402, message : "권한이 없습니다."})
             }
         }
     } catch (error) {
