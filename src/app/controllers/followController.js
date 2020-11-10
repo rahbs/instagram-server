@@ -50,6 +50,7 @@ exports.acceptFollow = async function (req,res) {
         const selectRequestFollowbyUserIdRows = await followDao.selectRequestFollowbyUserId(acceptFollowParams);
         if(userIdx === selectRequestFollowbyUserIdRows){
             const acceptFollowRows = await followDao.acceptFollow(acceptFollowParams);
+            //console.log(acceptFollowRows);
             if(acceptFollowRows.length<1){
                 return res.json({isSucess : false, code :400, message : "요청이 없습니다."});
             }
@@ -57,7 +58,7 @@ exports.acceptFollow = async function (req,res) {
             return res.json({follow : "팔로잉" ,isSucess : true, code :200, message : "팔로우 요청 수락"});
         }
         else{
-            return res.json({isSucess : false, code :400, message : "권한이 없습니다."});
+            return res.json({isSucess : false, code :402, message : "권한이 없습니다."});
         }
         
 
@@ -69,7 +70,7 @@ exports.acceptFollow = async function (req,res) {
 }
 /**
  update : 2020.11.8
- 22. refuseFollowRequest API = 팔로우 요청거절
+ 23. refuseFollowRequest API = 팔로우 요청거절
  **/
 exports.refuseFollow = async function (req,res) {
     const followRequestId = req.params['followRequestId'];
@@ -92,6 +93,182 @@ exports.refuseFollow = async function (req,res) {
 
     } catch (error) {
         logger.error(`App - refuseFollow Query error\n: ${JSON.stringify(error)}`);
+        connection.release();
+        return false;
+    }
+}
+/**
+ update : 2020.11.8
+ 24. setCloseFriend API = 친한 친구 설정
+ **/
+exports.setCloseFriend = async function (req,res) {
+    const userId = req.params['userIdx'];
+    try {
+        const userIdx = req.verifiedToken.id;
+        const isValidFollowParams = [userIdx,userId];
+        const isValidFollowRows = await followDao.isValidFollow(isValidFollowParams);
+        if(isValidFollowRows === 0){
+            return res.json({isSucess : false, code : 300, message : "팔로워가 아닌 유저입니다."});
+        }
+        else{
+            if(isValidFollowParams[0] === userIdx){
+                const setCloseFriendParams = [userIdx,userId];
+                const setCloseFriendRows = await followDao.setCloseFriend(setCloseFriendParams);
+                if(setCloseFriendRows === 'N'){
+                    return res.json({isSucess : true, code : 201, message : "친한 친구 설정 취소"})
+                }
+                return res.json({isSucess : true, code : 200, message : "친한 친구 설정 성공"});
+            }
+            else{
+                return res.json({isSucess : false, code : 402, message : "권한이 없습니다."})
+            }
+        }
+
+    } catch (error) {
+        logger.error(`App - setCloseFriend Query error\n: ${JSON.stringify(error)}`);
+        connection.release();
+        return false;
+    }
+}
+/**
+ update : 2020.11.9
+ 25. hideFeedOrStory API = 피드/스토리 숨김
+ **/
+exports.hideFeedOrStory = async function (req,res) {
+    const userId = req.params['userIdx'];
+    const kind = req.query.kind;
+    try {
+        const userIdx = req.verifiedToken.id;
+        const isValidFollowParams = [userIdx,userId];
+        const isValidFollowRows = await followDao.isValidFollow(isValidFollowParams);
+        if(isValidFollowRows === 0){
+            return res.json({isSucess : false, code : 300, message : "팔로워가 아닌 유저입니다."});
+        }
+        else{
+            if(isValidFollowParams[0] === userIdx){
+                const hideFeedOrStoryParams = [kind,userIdx,userId];
+                const hideFeedOrStoryRows = await followDao.hideFeedOrStory(kind,userIdx,userId);
+                if(hideFeedOrStoryRows === 'SY'){
+                    return res.json({isSucess : true, code : 210, message : "스토리 숨김 설정 성공"})
+                }
+                else if(hideFeedOrStoryRows === 'SN'){
+                    return res.json({isSucess : true, code : 211, message : "스토리 숨김 설정 취소"})
+                }
+                else if(hideFeedOrStoryRows === 'FY'){
+                    return res.json({isSucess : true, code : 200, message : "피드 숨김 설정 성공"});
+                }
+                else if(hideFeedOrStoryRows === 'FN'){
+                    return res.json({isSucess : true, code : 201, message : "피드 숨김 설정 취소"});
+                }
+                else{
+                    return res.json({isSucess : false, code : 301, message : "유효하지 않은 쿼리스트링입니다."});
+                }
+                
+            }
+            else{
+                return res.json({isSucess : false, code : 402, message : "권한이 없습니다."})
+            }
+        }
+
+    } catch (error) {
+        logger.error(`App - hideFeedOrStory Query error\n: ${JSON.stringify(error)}`);
+        connection.release();
+        return false;
+    }
+}
+/**
+ update : 2020.11.9
+ 26. cancelFollowing API = 팔로잉 취소
+ **/
+exports.cancelFollowing = async function (req,res) {
+    const userId = req.params['userIdx'];
+    try {
+        const userIdx = req.verifiedToken.id;
+        const isValidFollowParams = [userId,userIdx];
+        const isValidFollowRows = await followDao.isValidFollow(isValidFollowParams);
+        if(isValidFollowRows === 0){
+            return res.json({isSucess : false, code : 300, message : "팔로우 상태가 아닌 유저입니다."});
+        }
+        else{
+            if(isValidFollowParams[0] === userId){
+                const cancelFollowingParams = [userId,userIdx];
+                const cancelFollowingRows = await followDao.cancelFollowing(cancelFollowingParams);
+                return res.json({isSucess : true, code : 200, message : "팔로잉 취소"})
+                
+            }
+            else{
+                return res.json({isSucess : false, code : 402, message : "권한이 없습니다."})
+            }
+        }
+
+    } catch (error) {
+        logger.error(`App - cancelFollowing Query error\n: ${JSON.stringify(error)}`);
+        connection.release();
+        return false;
+    }
+}
+/**
+ update : 2020.11.9
+ 27. cancelFollower API = 팔로워 삭제
+ **/
+exports.cancelFollower = async function (req,res) {
+    const userId = req.params['userIdx'];
+    try {
+        const userIdx = req.verifiedToken.id;
+        const isValidFollowParams = [userId,userIdx];
+        const isValidFollowRows = await followDao.isValidFollow(isValidFollowParams);
+        if(isValidFollowRows === 0){
+            return res.json({isSucess : false, code : 300, message : "팔로우 상태가 아닌 유저입니다."});
+        }
+        else{
+            if(isValidFollowParams[0] === userId){
+                const cancelFollowerParams = [userIdx,userId];
+                const cancelFollowerRows = await followDao.cancelFollower(cancelFollowerParams);
+                return res.json({isSucess : true, code : 200, message : "팔로워 삭제"})
+                
+            }
+            else{
+                return res.json({isSucess : false, code : 402, message : "권한이 없습니다."})
+            }
+        }
+
+    } catch (error) {
+        logger.error(`App - cancelFollower Query error\n: ${JSON.stringify(error)}`);
+        connection.release();
+        return false;
+    }
+}
+/**
+ update : 2020.11.9
+ 28. userBlock API = 차단
+ **/
+exports.userBlock = async function (req,res) {
+    const userId = req.params['userIdx'];
+    try {
+        const userIdx = req.verifiedToken.id;
+        const isValidFollowParams = [userIdx,userId];
+        const isValidFollowRows = await followDao.isValidFollow(isValidFollowParams);
+        if(isValidFollowRows === 0){
+            return res.json({isSucess : false, code : 300, message : "팔로우 상태가 아닌 유저입니다."});
+        }
+        else{
+            if(isValidFollowParams[0] === userIdx){
+                const userBlockParams = [userIdx,userId];
+                const userBlockRows = await followDao.userBlock(userBlockParams);
+                if(userBlockRows === 'Y'){
+                    return res.json({isSucess : true, code : 200, message : "차단"});
+                }
+                else if(userBlockRows === 'N'){
+                    return res.json({isSucess : true, code : 201, message : "차단 취소"});
+                }
+                
+            }
+            else{
+                return res.json({isSucess : false, code : 402, message : "권한이 없습니다."})
+            }
+        }
+    } catch (error) {
+        logger.error(`App - userBlock Query error\n: ${JSON.stringify(error)}`);
         connection.release();
         return false;
     }

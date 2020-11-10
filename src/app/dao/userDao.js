@@ -289,6 +289,24 @@ async function changeAccountType(userIdx){
       connection.release();
   }
 }
+// 유저검색
+async function selectUserbyUserId(selectUserbyUserIdParams){
+  const connection = await pool.getConnection(async (conn) => conn);
+  try{
+    const selectUserbyUserIdQuery = `select userIdx,userId, profileImgUrl, name, follow from user
+    left join follow f on f.followedUserIdx = userIdx && f.followingUserIdx = ?
+    where userId like concat('%', ?,'%');`;
+    const [selectUserbyUserIdRows] = await connection.query(selectUserbyUserIdQuery,selectUserbyUserIdParams);
+    console.log(selectUserbyUserIdRows);
+    connection.release;
+    return selectUserbyUserIdRows
+  } catch(error){
+    logger.error(`App - selectUserbyUserId function error\n: ${JSON.stringify(error)}`);
+    connection.release();
+    return false;
+  }
+}
+
 
 
 module.exports = {
@@ -307,5 +325,6 @@ module.exports = {
   modifyUserInfo,
   getUserIdbyIdx,
   getAccountType,
-  changeAccountType
+  changeAccountType,
+  selectUserbyUserId,
 };
