@@ -68,7 +68,7 @@ exports.getUserFeed = async function (req, res){
         
         userInfo = {
             relation : relation,
-            profilImgUrl : getUserInfo[0].profileImgUrl,
+            profileImgUrl : getUserInfo[0].profileImgUrl,
             userId : getUserInfo[0].userId,
             userName : getUserInfo[0].userName,
             profileIntro : getUserInfo[0].profileIntro,
