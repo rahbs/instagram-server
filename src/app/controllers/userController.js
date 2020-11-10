@@ -428,11 +428,7 @@ exports.selectUserbyUserId = async function (req, res) {
         console.log(selectUserbyIdParams)
         const [selectUserbyIdRows] = await userDao.selectUserbyUserId(selectUserbyIdParams);
         return res.json({
-            userIdx : selectUserbyIdRows[0].userIdx,
-            userId : selectUserbyIdRows[0].userId,
-            profileImgUrl : selectUserbyIdRows[0].profileImgUrl,
-            name : selectUserbyIdRows[0].name,
-            follow : selectUserbyIdRows[0].follow,
+            result : [selectUserbyIdRows],
             isSuccess: true,
             code : 200,
             message : "유저 조회 성공"
