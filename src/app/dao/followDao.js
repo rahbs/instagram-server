@@ -293,7 +293,7 @@ async function notFollowingUserList(userIdx) {
         var Rows = new Array();
         for(var i=0;i<notFollowUser.length;i++){
             const [notFollowingUserListRows] = await connection.query(selectNotFollowingUserQuery,notFollowUser[i]);
-            Rows[i] = notFollowingUserListRows;
+            Rows[i] = notFollowingUserListRows[0];
         }
         return [Rows];
     } catch (error) {
