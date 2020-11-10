@@ -425,7 +425,6 @@ exports.selectUserbyUserId = async function (req, res) {
     const userIdx = req.verifiedToken.id;
     try {
         const selectUserbyIdParams = [userIdx,userId];
-        console.log(selectUserbyIdParams)
         const [selectUserbyIdRows] = await userDao.selectUserbyUserId(selectUserbyIdParams);
         return res.json({
             result : [selectUserbyIdRows],
