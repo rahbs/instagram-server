@@ -123,7 +123,7 @@ async function getFeeds(userIdx,selectedUserIdx){
     try{
         let getFeedInfoQuery = `
         SELECT feedId_, a.userIdx as userIdx, user.userId as userId, user.profileImgUrl as profileImgUrl,
-                likeUser.profileImgUrl as likeUserProfileImgUrl, location,caption, commentNum,
+                likeUser.profileImgUrl as likeUserProfileImgUrl, location, caption, commentNum,
                 CASE
                     WHEN likeCheck.feedId is not null
                     THEN true
@@ -137,7 +137,7 @@ async function getFeeds(userIdx,selectedUserIdx){
         #             ELSE CONCAT ('좋아요 ',likeNum,'개')
         #        END AS likeNum
         from
-            (SELECT feed.id as feedId_,feed.userIdx,feed.location, feed.caption, COUNT(heart.feedId) as likeNum,isDeleted
+            (SELECT feed.id as feedId_,feed.userIdx,feed.location, feed.caption, COUNT(heart.feedId) as likeNum,isDeleted, feed.createdAt
             FROM feed
             LEFT JOIN (select * from heart where status = 'F' and isLiked = 'Y') as heart
                 ON heart.feedId = feed.id
@@ -184,7 +184,7 @@ async function getFeeds(userIdx,selectedUserIdx){
                     `;
         if(selectedUserIdx) 
             getFeedInfoQuery = getFeedInfoQuery + ` and a.userIdx = ${selectedUserIdx}`;
-        getFeedInfoQuery = getFeedInfoQuery+ ';';
+        getFeedInfoQuery = getFeedInfoQuery+ ' ORDER BY a.createdAt DESC;';
         const [feedInfoList] = await connection.query(
             getFeedInfoQuery,
             [userIdx,userIdx,userIdx,userIdx,userIdx,userIdx]
