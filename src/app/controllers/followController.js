@@ -273,3 +273,23 @@ exports.userBlock = async function (req,res) {
         return false;
     }
 }
+/**
+ update : 2020.11.10
+ 29. notFollowingUserList API = 맞팔로우하지 않은 유저 리스트
+ **/
+exports.notFollowingUserList = async function (req,res) {
+    try {
+        const userIdx = req.verifiedToken.id;
+        
+        const [notFollowingUserListRows] = await followDao.notFollowingUserList(userIdx);
+        return res.json({
+            result : notFollowingUserListRows,
+            isSucess : true, code : 200, message : "맞팔로우하지 않은 유저 조회 성공"
+        });
+       
+    } catch (error) {
+        logger.error(`App - userBlock Query error\n: ${JSON.stringify(error)}`);
+        connection.release();
+        return false;
+    }
+}

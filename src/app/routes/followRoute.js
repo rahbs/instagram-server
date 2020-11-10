@@ -13,4 +13,5 @@ module.exports = function(app){
     app.delete('/user/:userIdx/following',jwtMiddleware,follow.cancelFollowing);
     app.delete('/user/:userIdx/follower',jwtMiddleware,follow.cancelFollower);
     app.route('/user/:userIdx/block').post(jwtMiddleware,follow.userBlock);
+    app.get('/users/notFollowingUser',jwtMiddleware,follow.notFollowingUserList);
 };
