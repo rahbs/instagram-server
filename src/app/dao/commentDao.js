@@ -1,14 +1,18 @@
 const { pool } = require("../../../config/database");
 
 // 댓글생성
-async function insertComment(insertCommentParams) {
+async function insertComment(feedId,userIdx,comment) {
   const connection = await pool.getConnection(async (conn) => conn);
   const insertCommentQuery = `insert into comment(Id,feedId,userIdx, content) values (LAST_INSERT_ID(),?,?,?);`;
+
+  const selectUserInfoQuery = `select profileImgUrl,userId from user where userIdx = ?;`;
+  const insertCommentParams = [feedId,userIdx,comment];
   const [insertCommentRows] = await connection.query(insertCommentQuery, insertCommentParams);
- 
+  const [selectUserInfoRows] = await connection.query(selectUserInfoQuery,userIdx);
+  const Rows = [insertCommentRows.insertId, selectUserInfoRows[0].profileImgUrl, selectUserInfoRows[0].userId];
   connection.release();
 
-  return insertCommentRows
+  return Rows;
 }
 // 댓글삭제
 async function deleteComment(deleteCommentParams) {
