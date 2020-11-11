@@ -1,14 +1,83 @@
 const { pool } = require("../../../config/database");
-
-// 댓글생성
-async function insertComment(insertCommentParams) {
+//댓글 상세 보기
+async function selectCommentByFeedId(selectCommentByFeedIdParams) {
   const connection = await pool.getConnection(async (conn) => conn);
-  const insertCommentQuery = `insert into comment(Id,feedId,userIdx, content) values (LAST_INSERT_ID(),?,?,?);`;
-  const [insertCommentRows] = await connection.query(insertCommentQuery, insertCommentParams);
- 
-  connection.release();
+  try {
+    const selectCommentByFeedIdQuery = 
+    `select profileImgUrl,commentTable.commentID,commentTable.userIdx,content,
+    case
+        when timestampdiff(second,createdAt,now())<60
+            then concat(timestampdiff(second,now(),createdAt),'초')
+        when timestampdiff(second,createdAt,now())>=60 && timestampdiff(second,createdAt,now())<3600
+            then concat(timestampdiff(minute,createdAt,now()),'분')
+         when timestampdiff(second,createdAt,now())>=3600 && timestampdiff(second,createdAt,now())<86400
+                then concat(timestampdiff(hour,createdAt,now()),'시간')
+         when timestampdiff(second,createdAt,now())>=86400 && timestampdiff(second,createdAt,now())<604800
+             then concat(timestampdiff(day,createdAt,now()),'일')
+          when timestampdiff(second,createdAt,now())>=604800 && timestampdiff(second,createdAt,now())<3153600
+              then concat(timestampdiff(week,createdAt,now()),'주')
+         when timestampdiff(second,createdAt,now())>=3153600
+             then concat(timestampdiff(year,createdAt,now()),'년')
+             end as created
+    ,concat('좋아요 ',likecounts,'개') as likecount
+from (select Id as commentID,comment.userIdx,content, createdAt from comment where comment.feedId = ? && comment.isDeleted ='N')commentTable
+left outer join (select case when commentId !=0
+ then commentId
+ end as commentId,
+ count(status ='Y') as likecounts from heart group by commentId)heartTable on heartTable.commentId = commentTable.commentID
+left outer join (select profileImgUrl, user.userIdx from user inner join comment c on user.userIdx = c.userIdx where feedId = ? && c.isDeleted = 'N' group by userIdx)profile on profile.userIdx = commentTable.userIdx
+limit ?,?;`;
+ const Params = [selectCommentByFeedIdParams[0],selectCommentByFeedIdParams[0],Number(selectCommentByFeedIdParams[1]),Number(selectCommentByFeedIdParams[2])];
+    const [selectCommentByFeedIdRows]= await connection.query(selectCommentByFeedIdQuery,Params);
+    connection.release();
+    return [selectCommentByFeedIdRows]; 
+    
+  } catch (error) {
+    logger.error(`App - selectCommentByFeedId function error\n: ${JSON.stringify(error)}`);
+    connection.release();
+    return false;
+  }
+}
+async function commentUser(commentUserParams){
+  const connection = await pool.getConnection(async (conn) => conn);
+  const commentUserQuery = `select profileImgUrl, userId, user.userIdx, caption from user
+  inner join feed f on user.userIdx = f.userIdx where f.userIdx =? && f.id = ?;`;
+  const [commentUserRows] = await connection.query(commentUserQuery,commentUserParams);
+  connection.release;
+  return commentUserRows[0]
+}
+// 댓글생성
+async function insertComment(feedId,userIdx,comment) {
+  const connection = await pool.getConnection(async (conn) => conn);
+  try {
+    await connection.beginTransaction();
+    const insertCommentQuery = `insert into comment(Id,feedId,userIdx, content) values (LAST_INSERT_ID(),?,?,?);`;
+    const selectUserInfoQuery = `select profileImgUrl,userId from user where userIdx = ?;`;
+    const insertCommentParams = [feedId,userIdx,comment];
+    const [insertCommentRows] = await connection.query(insertCommentQuery, insertCommentParams);
+    const [selectUserInfoRows] = await connection.query(selectUserInfoQuery,userIdx);
+    const Rows = [insertCommentRows.insertId, selectUserInfoRows[0].profileImgUrl, selectUserInfoRows[0].userId];
 
-  return insertCommentRows
+    const insertAcitivityQuery = `insert into activity(userIdx, userId, writing, user_,profileImgUrl) values(?,?,?,?,?);`;
+    const selectUserIdQuery = `select userId from user where userIdx = ?;`;
+    const [selectUserIdRows] = await connection.query(selectUserIdQuery,userIdx);
+    const userId = selectUserIdRows[0].userId;
+    const selectUserQuery = `select userIdx from feed where Id = ?;`;
+    const [selectUserRows] = await connection.query(selectUserQuery,feedId);
+    const user_ = selectUserRows[0].userIdx;
+    const writing = userId+"님이 댓글을 남겼습니다:\n"+comment;
+    const profileImgUrlQuery =`select profileImgUrl from user where userIdx=?;`; 
+    const [profileImgUrlRows] = await connection.query(profileImgUrlQuery,userIdx);
+    const profileImgUrl = profileImgUrlRows[0].profileImgUrl;
+    const insertAcitivityParams = [userIdx,userId,writing,user_,profileImgUrl];
+    const [insertAcitivityRows] = await connection.query(insertAcitivityQuery,insertAcitivityParams);
+    await connection.commit();
+    return Rows;
+  } catch (error) {
+    await connection.rollback();
+  }finally{
+    connection.release();
+  }  
 }
 // 댓글삭제
 async function deleteComment(deleteCommentParams) {
@@ -113,6 +182,7 @@ async function likeFeed(likeFeedParams) {
 
 
 module.exports = {
+    selectCommentByFeedId,
     insertComment,
     deleteComment,
     selectComment,
@@ -120,5 +190,6 @@ module.exports = {
     selectCommentList,
     likeComment,
     likeFeed,
+    commentUser,
   };
   

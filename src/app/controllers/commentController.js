@@ -13,22 +13,28 @@ const secret_config = require('../../../config/secret');
  **/
 exports.selectCommentList = async function (req, res) {
     const feedID = req.params['feedId'];
+    const limitStart = req.query.limitStart;
+    const limitCount = req.query.limitCount;
 
     try {
         const userIdx = req.verifiedToken.id;
-        const selectCommentListParams = [feedID];
-        const selectCommentListRows = await commentDao.selectCommentListComment(selectCommentListParams);
-        return res.json({commentList : selectCommentList,
+        const selectCommentListParams = [feedID,limitStart,limitCount];
+        const [selectCommentByFeedIdRows] = await commentDao.selectCommentByFeedId(selectCommentListParams);
+        const commentUserParams = [userIdx,feedID];
+        const commentUserRows = await commentDao.commentUser(commentUserParams);
+        return res.json({
+            userFeed : commentUserRows,
+            commentList : selectCommentByFeedIdRows,
             isSucess : true, code : 200, message : "댓글 조회 성공"});
     } catch (error) {
-        logger.error(`App - InsertComment Query error\n: ${JSON.stringify(error)}`);
-
+        logger.error(`App - selectCommnetList Query error\n: ${JSON.stringify(error)}`);
+        connection.release();
             return false;
     }
 }
 /**
  update : 2020.11.5
- 16.like comment API = 댓글좋아요/취소
+ 16.like feed API = 피드좋아요/취소
  **/
 exports.likeFeed = async function (req, res) {
     const feedID = req.params['feedId'];
@@ -40,7 +46,7 @@ exports.likeFeed = async function (req, res) {
         else if(likeFeedRows === 'N') return res.json({like : "N", isSucess : true, code : 201, message : "좋아요 취소"});
     } catch (error) {
         logger.error(`App - likeFeed Query error\n: ${JSON.stringify(error)}`);
-
+        connection.release();
             return false;
     }
 }
@@ -59,7 +65,7 @@ exports.likeComment = async function (req, res) {
         
     } catch (error) {
         logger.error(`App - likeComment Query error\n: ${JSON.stringify(error)}`);
-
+        connection.release();
             return false;
     }
 }
@@ -77,12 +83,14 @@ exports.createComment = async function (req, res) {
         const userIdx = req.verifiedToken.id;
         //const [userIdx] = await userDao.getUserIdxbyId(userId);
         const insertCommentParams = [feedId,userIdx,comment];
-        const insertCommmentRows = await commentDao.insertComment(insertCommentParams);
-        return res.json({commentId : insertCommmentRows.insertId,
+        const insertCommmentRows = await commentDao.insertComment(feedId,userIdx,comment);
+        return res.json({commentId : insertCommmentRows[0],
+            profileImgUrl : insertCommmentRows[1],
+            userId : insertCommmentRows[2],
             isSucess : true, code : 200, message : "댓글생성성공"});
     } catch (error) {
         logger.error(`App - InsertComment Query error\n: ${JSON.stringify(error)}`);
-
+        connection.release();
             return false;
     }
 }
@@ -108,7 +116,7 @@ exports.deleteComment = async function (req, res) {
         return res.json({isSucess : true, code : 200, message : "댓글 삭제 성공"});
     } catch (error) {
         logger.error(`App - DeleteComment Query error\n: ${JSON.stringify(error)}`);
-
+        connection.release();
             return false;
     }
 }

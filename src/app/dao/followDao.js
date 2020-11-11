@@ -61,17 +61,48 @@ async function requestFollowPrivateUser(requestFollowPrivateUserParams) {
     }
 }
 
-//팔로우 리스트 조회
-// async function requestFollow(requestFollowParams) {
-//     const connection = await pool.getConnection(async (conn) => conn);
-//     const selectFollowQuery = `select follow from follow where followingUserIdx = ? && followedUserIdx = ?;`;
-
-    
-//         const [requestFollowRows] = await connection.query(requestFollowQuery,requestFollowParams);
-//         connection.release();
-
-// }
-//팔로잉 리스트 조회
+//팔로잉/팔로워 리스트 조회
+async function followList(userIdx,followType){
+    try {
+        const connection = await pool.getConnection(async (conn) => conn);
+        const selectFollowUserQuery = `select userIdx,userId, profileImgUrl, name from user where userIdx = ?;`;
+        if(followType === "follower"){
+            const followerListQuery = `select followingUserIdx as Id from follow where followedUserIdx =?;`;
+            const [followListRows] = await connection.query(followerListQuery,userIdx);
+            var followList = new Array();
+            for(var i =0;i<followListRows.length;i++){
+                followList[i] = followListRows[i].Id;
+            }
+            var List = new Array();
+            for(var i=0;i<followList.length;i++){
+                const [Rows] = await connection.query(selectFollowUserQuery,followList[i]);
+                List[i] = Rows[0];
+            }
+            connection.release();
+            return [List]
+        }
+        else if(followType === "following"){
+            const followingListQuery = `select followedUserIdx as Id from follow where followingUserIdx = ?;`;
+            const [followListRows] = await connection.query(followingListQuery,userIdx);
+            var followList = new Array();
+            for(var i =0;i<followListRows.length;i++){
+                followList[i] = followListRows[i].Id;
+            }
+            var List = new Array();
+            for(var i=0;i<followList.length;i++){
+                const [Rows] = await connection.query(selectFollowUserQuery,followList[i]);
+                List[i] = Rows[0];
+            }
+            connection.release();
+            return [List]
+        }
+       
+    } catch (error) {
+        logger.error(`App - followList function error\n: ${JSON.stringify(error)}`);
+        connection.release();
+        return false;
+    }
+}
 
 //팔로우 요청 수락
 async function acceptFollow(acceptFollowParams) {
@@ -268,6 +299,40 @@ async function userBlock(userBlockParams) {
         return false;
     }
 }
+//맞팔로우하지 않은 유저 목록
+async function notFollowingUserList(userIdx) {
+    const connection = await pool.getConnection(async (conn) => conn);
+    try {
+        
+        const followerUserListQuery = `select followingUserIdx from follow where followedUserIdx =?;`; //해당 유저를 팔로잉
+        const followingUserListQuery = `select followedUserIdx from follow where followingUserIdx = ?;`; //해당 유저가 팔로잉
+        const selectNotFollowingUserQuery = `select userIdx,userId, profileImgUrl, name from user where userIdx = ?;`;
+        
+        const[followerUserListRows] = await connection.query(followerUserListQuery,userIdx);
+        var follwerUser = new Array();
+        for(var i=0; i< followerUserListRows.length;i++){
+            follwerUser[i] = followerUserListRows[i].followingUserIdx;
+        }
+
+        const[followingUserListRows] = await connection.query(followingUserListQuery,userIdx);
+        var followedUser = new Array();
+        for(var i=0; i<followingUserListRows.length;i++){
+            followedUser[i] = followingUserListRows[i].followedUserIdx;
+        }
+        var notFollowUser  = follwerUser.filter((user) => !followedUser.includes(user));
+
+        var Rows = new Array();
+        for(var i=0;i<notFollowUser.length;i++){
+            const [notFollowingUserListRows] = await connection.query(selectNotFollowingUserQuery,notFollowUser[i]);
+            Rows[i] = notFollowingUserListRows[0];
+        }
+        return [Rows];
+    } catch (error) {
+        logger.error(`App - notFollowingUserList function error\n: ${JSON.stringify(error)}`);
+        connection.release();
+        return false;
+    }
+}
 
 
 
@@ -284,5 +349,7 @@ module.exports = {
     cancelFollowing,
     cancelFollower,
     userBlock,
+    notFollowingUserList,
+    followList,
 
 }

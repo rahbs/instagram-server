@@ -297,9 +297,8 @@ async function selectUserbyUserId(selectUserbyUserIdParams){
     left join follow f on f.followedUserIdx = userIdx && f.followingUserIdx = ?
     where userId like concat('%', ?,'%');`;
     const [selectUserbyUserIdRows] = await connection.query(selectUserbyUserIdQuery,selectUserbyUserIdParams);
-    console.log(selectUserbyUserIdRows);
     connection.release;
-    return selectUserbyUserIdRows
+    return [selectUserbyUserIdRows]
   } catch(error){
     logger.error(`App - selectUserbyUserId function error\n: ${JSON.stringify(error)}`);
     connection.release();

@@ -1,3 +1,5 @@
+const { addColors } = require('winston/lib/winston/config');
+
 module.exports = function(app){
     const comment = require('../controllers/commentController');
     const jwtMiddleware = require('../../../config/jwtMiddleware');
@@ -5,6 +7,7 @@ module.exports = function(app){
     //app.route('/signIn').post(user.signIn);
 
     //app.get('/check', jwtMiddleware, user.check);
+    app.get('/feed/feedId/comments',jwtMiddleware,comment.selectCommentList);
     app.route('/comment').post(jwtMiddleware, comment.createComment);
     app.delete('/comment/:commentId', jwtMiddleware ,comment.deleteComment);
     app.get('/feed/:feedId/comments',jwtMiddleware,comment.selectCommentList);

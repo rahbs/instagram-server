@@ -37,6 +37,37 @@ exports.requestFollow = async function (req,res) {
         return false;
     }
 }
+/**
+ update : 2020.11.10
+ 21.followList API = 팔로잉/팔로워 리스트 조회
+ **/
+exports.followList = async function (req,res) {
+    try {
+        const userIdx = req.verifiedToken.id;
+        const followType = req.query.follow;
+        if(followType === "follower"){
+            const [followListRows] = await followDao.followList(userIdx,followType);
+            return res.json({
+                result : followListRows,
+                isSucess : true, code : 200, message : "팔로워 목록 조회"
+            });
+        }else if(followType === "following"){
+            const [followListRows] = await followDao.followList(userIdx,followType);
+            return res.json({
+                result : followListRows,
+                isSucess : true, code : 201, message : "팔로잉 목록 조회"
+            });
+        }else{
+            return res.json({
+                isSucess : false, code : 400, message : "없는 옵션입니다."
+            });
+        }
+    } catch (error) {
+        logger.error(`App - followList Query error\n: ${JSON.stringify(error)}`);
+        connection.release();
+        return false;
+    }
+}
 
 /**
  update : 2020.11.7
@@ -267,6 +298,26 @@ exports.userBlock = async function (req,res) {
                 return res.json({isSucess : false, code : 402, message : "권한이 없습니다."})
             }
         }
+    } catch (error) {
+        logger.error(`App - userBlock Query error\n: ${JSON.stringify(error)}`);
+        connection.release();
+        return false;
+    }
+}
+/**
+ update : 2020.11.10
+ 29. notFollowingUserList API = 맞팔로우하지 않은 유저 리스트
+ **/
+exports.notFollowingUserList = async function (req,res) {
+    try {
+        const userIdx = req.verifiedToken.id;
+        
+        const [notFollowingUserListRows] = await followDao.notFollowingUserList(userIdx);
+        return res.json({
+            result : notFollowingUserListRows,
+            isSucess : true, code : 200, message : "맞팔로우하지 않은 유저 조회 성공"
+        });
+       
     } catch (error) {
         logger.error(`App - userBlock Query error\n: ${JSON.stringify(error)}`);
         connection.release();
