@@ -49,16 +49,35 @@ async function commentUser(commentUserParams){
 // 댓글생성
 async function insertComment(feedId,userIdx,comment) {
   const connection = await pool.getConnection(async (conn) => conn);
-  const insertCommentQuery = `insert into comment(Id,feedId,userIdx, content) values (LAST_INSERT_ID(),?,?,?);`;
+  try {
+    await connection.beginTransaction();
+    const insertCommentQuery = `insert into comment(Id,feedId,userIdx, content) values (LAST_INSERT_ID(),?,?,?);`;
+    const selectUserInfoQuery = `select profileImgUrl,userId from user where userIdx = ?;`;
+    const insertCommentParams = [feedId,userIdx,comment];
+    const [insertCommentRows] = await connection.query(insertCommentQuery, insertCommentParams);
+    const [selectUserInfoRows] = await connection.query(selectUserInfoQuery,userIdx);
+    const Rows = [insertCommentRows.insertId, selectUserInfoRows[0].profileImgUrl, selectUserInfoRows[0].userId];
 
-  const selectUserInfoQuery = `select profileImgUrl,userId from user where userIdx = ?;`;
-  const insertCommentParams = [feedId,userIdx,comment];
-  const [insertCommentRows] = await connection.query(insertCommentQuery, insertCommentParams);
-  const [selectUserInfoRows] = await connection.query(selectUserInfoQuery,userIdx);
-  const Rows = [insertCommentRows.insertId, selectUserInfoRows[0].profileImgUrl, selectUserInfoRows[0].userId];
-  connection.release();
-
-  return Rows;
+    const insertAcitivityQuery = `insert into activity(userIdx, userId, writing, user_,profileImgUrl) values(?,?,?,?,?);`;
+    const selectUserIdQuery = `select userId from user where userIdx = ?;`;
+    const [selectUserIdRows] = await connection.query(selectUserIdQuery,userIdx);
+    const userId = selectUserIdRows[0].userId;
+    const selectUserQuery = `select userIdx from feed where Id = ?;`;
+    const [selectUserRows] = await connection.query(selectUserQuery,feedId);
+    const user_ = selectUserRows[0].userIdx;
+    const writing = userId+"님이 댓글을 남겼습니다:\n"+comment;
+    const profileImgUrlQuery =`select profileImgUrl from user where userIdx=?;`; 
+    const [profileImgUrlRows] = await connection.query(profileImgUrlQuery,userIdx);
+    const profileImgUrl = profileImgUrlRows[0].profileImgUrl;
+    const insertAcitivityParams = [userIdx,userId,writing,user_,profileImgUrl];
+    const [insertAcitivityRows] = await connection.query(insertAcitivityQuery,insertAcitivityParams);
+    await connection.commit();
+    return Rows;
+  } catch (error) {
+    await connection.rollback();
+  }finally{
+    connection.release();
+  }  
 }
 // 댓글삭제
 async function deleteComment(deleteCommentParams) {
