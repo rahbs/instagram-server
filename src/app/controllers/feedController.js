@@ -7,14 +7,14 @@ const userDao = require('../dao/userDao');
 
 exports.uploadFeed = async function (req, res) {
     const {
-        imgUrls, caption
+        imgUrl, caption
         } = req.body;
-    if(!imgUrls) return res.json({isSuccess: false, code: 300, message: "imgUrls에 값이 없습니다."});
+    if(!imgUrl) return res.json({isSuccess: false, code: 300, message: "imgUrl에 값이 없습니다."});
     
     try {
         const userIdx = req.verifiedToken.id;
         //const [userIdx] = await userDao.getUserIdxbyId(userId);
-        const insertFeed = await feedDao.uploadFeed(userIdx, imgUrls, caption);
+        const insertFeed = await feedDao.uploadFeed(userIdx, imgUrl, caption);
         return res.json({
             isSuccess: true,
             code: 200,

@@ -26,12 +26,13 @@ async function uploadFeed(userIdx, imgUrls, caption) {
             );
         const [getcurrentFeedId] = await connection.query(getCurrentFeedIdQuery);
         const currentFeedId = getcurrentFeedId[0].currentFeedId;
-        for (var i in imgUrls){
-                await connection.query(
-                uploadFeedImgQuery,
-                [currentFeedId,imgUrls[i].url]
-            );
-        }
+        // for (var i in imgUrls){
+        //         await connection.query(
+        //         uploadFeedImgQuery,
+        //         [currentFeedId,imgUrls[i].url]
+        //     );
+        // }
+        await connection.query(uploadFeedImgQuery,[currentFeedId,imgUrls]);
         // COMMIT
         await connection.commit(); 
 
