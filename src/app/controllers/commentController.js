@@ -13,22 +13,28 @@ const secret_config = require('../../../config/secret');
  **/
 exports.selectCommentList = async function (req, res) {
     const feedID = req.params['feedId'];
+    const limitStart = req.query.limitStart;
+    const limitCount = req.query.limitCount;
 
     try {
         const userIdx = req.verifiedToken.id;
-        const selectCommentListParams = [feedID];
-        const selectCommentListRows = await commentDao.selectCommentListComment(selectCommentListParams);
-        return res.json({commentList : selectCommentList,
+        const selectCommentListParams = [feedID,limitStart,limitCount];
+        const [selectCommentByFeedIdRows] = await commentDao.selectCommentByFeedId(selectCommentListParams);
+        const commentUserParams = [userIdx,feedID];
+        const commentUserRows = await commentDao.commentUser(commentUserParams);
+        return res.json({
+            userFeed : commentUserRows,
+            commentList : selectCommentByFeedIdRows,
             isSucess : true, code : 200, message : "댓글 조회 성공"});
     } catch (error) {
-        logger.error(`App - InsertComment Query error\n: ${JSON.stringify(error)}`);
+        logger.error(`App - selectCommnetList Query error\n: ${JSON.stringify(error)}`);
         connection.release();
             return false;
     }
 }
 /**
  update : 2020.11.5
- 16.like comment API = 댓글좋아요/취소
+ 16.like feed API = 피드좋아요/취소
  **/
 exports.likeFeed = async function (req, res) {
     const feedID = req.params['feedId'];
