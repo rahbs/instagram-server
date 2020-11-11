@@ -427,7 +427,7 @@ exports.selectUserbyUserId = async function (req, res) {
         const selectUserbyIdParams = [userIdx,userId];
         const [selectUserbyIdRows] = await userDao.selectUserbyUserId(selectUserbyIdParams);
         return res.json({
-            result : [selectUserbyIdRows],
+            result : selectUserbyIdRows,
             isSuccess: true,
             code : 200,
             message : "유저 조회 성공"
