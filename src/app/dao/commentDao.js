@@ -86,6 +86,52 @@ async function insertComment(feedId,userIdx,comment) {
     connection.release();
   }  
 }
+// 대댓글생성
+async function insertreComment(feedId,parentId,userIdx,comment) {
+  const connection = await pool.getConnection(async (conn) => conn);
+  try {
+    
+    await connection.beginTransaction();
+    const insertCommentQuery = `insert into comment(feedId, content, parentId, userIdx)  values(?,?,?,?);`;
+    const selectUserInfoQuery = `select profileImgUrl,userId from user where userIdx = ?;`;
+    const insertCommentParams = [feedId,comment,parentId,userIdx];
+    const [insertCommentRows] = await connection.query(insertCommentQuery, insertCommentParams);
+    const ID = await connection.query('SELECT last_insert_id() as idx;');
+    const [selectUserInfoRows] = await connection.query(selectUserInfoQuery,userIdx);
+    
+    
+    
+
+    const insertAcitivityQuery = `insert into activity(userIdx, userId, writing, user_,profileImgUrl,commentId) values(?,?,?,?,?,?);`;
+    const selectUserIdQuery = `select userId from user where userIdx = ?;`;
+    const [selectUserIdRows] = await connection.query(selectUserIdQuery,userIdx);
+    const userId = selectUserIdRows[0].userId;
+  
+    const selectUserQuery = `select userIdx from comment where id = ?;`;
+    const [selectUserRows] = await connection.query(selectUserQuery,parentId);
+    const user_ = selectUserRows[0].userIdx;
+    
+    const writing = userId+"님이 댓글을 남겼습니다:\n"+comment;
+    
+    const profileImgUrlQuery =`select profileImgUrl from user where userIdx=?;`; 
+    const [profileImgUrlRows] = await connection.query(profileImgUrlQuery,userIdx);
+    const profileImgUrl = profileImgUrlRows[0].profileImgUrl;
+    
+    const commentId = ID[0][0].idx;
+    
+    const insertAcitivityParams = [userIdx,userId,writing,user_,profileImgUrl,commentId];
+    const [insertAcitivityRows] = await connection.query(insertAcitivityQuery,insertAcitivityParams);
+    const Rows = [ID[0][0].idx, selectUserInfoRows[0].profileImgUrl, selectUserInfoRows[0].userId];;
+    await connection.commit();
+    return Rows;
+  } catch (error) {
+    logger.error(`App - insertComment function error\n: ${JSON.stringify(error)}`);
+    
+    await connection.rollback();
+  }finally{
+    connection.release();
+  }  
+}
 // 댓글삭제
 async function deleteComment(commentId) {
 
@@ -276,5 +322,6 @@ module.exports = {
     likeComment,
     likeFeed,
     commentUser,
+    insertreComment,
   };
   

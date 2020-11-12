@@ -9,6 +9,7 @@ module.exports = function(app){
     //app.get('/check', jwtMiddleware, user.check);
     app.get('/feed/feedId/comments',jwtMiddleware,comment.selectCommentList);
     app.route('/comment').post(jwtMiddleware, comment.createComment);
+    app.route('/comment/recomment').post(jwtMiddleware, comment.createReComment);
     app.delete('/comment/:commentId', jwtMiddleware ,comment.deleteComment);
     app.get('/feed/:feedId/comments',jwtMiddleware,comment.selectCommentList);
     app.route('/comment/:commentId/like').post(jwtMiddleware,comment.likeComment);
