@@ -29,6 +29,7 @@ exports.requestFollow = async function (req,res) {
         else if(isPrivateUser[0].exist ===0) {
             const requestFollowRows = await followDao.requestFollow(userIdx,followUserIdx);
             if(requestFollowRows === 'Y') return res.json({follow : "팔로잉",isSucess : true, code :200, message : "팔로우 성공"});
+            else if(requestFollowRows === 'N') return res.json({follow : "팔로잉 취소",isSucess : true, code :201, message : "팔로우 취소"});
         }
 
     } catch (error) {
@@ -80,7 +81,7 @@ exports.acceptFollow = async function (req,res) {
         const acceptFollowParams = [followRequestId];
         const selectRequestFollowbyUserIdRows = await followDao.selectRequestFollowbyUserId(acceptFollowParams);
         if(userIdx === selectRequestFollowbyUserIdRows){
-            const acceptFollowRows = await followDao.acceptFollow(acceptFollowParams);
+            const acceptFollowRows = await followDao.acceptFollow(followRequestId);
             //console.log(acceptFollowRows);
             if(acceptFollowRows.length<1){
                 return res.json({isSucess : false, code :400, message : "요청이 없습니다."});

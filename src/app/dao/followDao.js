@@ -41,9 +41,14 @@ async function requestFollow(userIdx,followUserIdx) {
         
         const updateActivityQuery = `update activity set isDeleted = 'Y' where followingUserIdx =? &&followedUserIdx=?;`;
         const updateActivityParams = [userIdx,followUserIdx];
-        const updateActivityRows = await connection.query(updateActivityQuery,followID);
+        const updateActivityRows = await connection.query(updateActivityQuery,updateActivityParams);
         await connection.commit();
         return 'Y'
+    }
+    else if(selectFollowRows[0].follow === 'Y'){
+        const [requestFollowRows] = await connection.query(requestFollowhateQuery,requestFollowParams);
+        await connection.commit();
+        return 'N'
     }
     else {
 
@@ -51,6 +56,7 @@ async function requestFollow(userIdx,followUserIdx) {
         return 'Y'
     }
     } catch (error) {
+        console.log(error);
         logger.error(`App - requestFollow function error\n: ${JSON.stringify(error)}`);
         await connection.rollback();
     } finally{
@@ -144,6 +150,9 @@ async function acceptFollow(acceptFollowParams) {
     const requestFollowQuery =`insert into follow(followingUserIdx, followedUserIdx) values(?,?) ;`;
 
     const findIdQuery = `select requestingUserIdx as ingId, requestedUserIdx as edId from followRequest where id=?`;
+
+    const updateActivityQuery = `update activity set isDeleted = 'Y' where followRequestId = ?;`;
+
     try {
         await connection.beginTransaction();
         const [acceptFollowRows] = await connection.query(acceptFollowQuery,acceptFollowParams);
