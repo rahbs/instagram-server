@@ -41,7 +41,7 @@ exports.likeFeed = async function (req, res) {
     try {
         const userIdx = req.verifiedToken.id;
         const likeFeedParams = [userIdx,feedID];
-        const likeFeedRows = await commentDao.likeFeed(likeFeedParams);
+        const likeFeedRows = await commentDao.likeFeed(userIdx,feedID);
         if(likeFeedRows === 'Y') return res.json({like : "Y", isSucess : true, code : 200, message : "좋아요"});
         else if(likeFeedRows === 'N') return res.json({like : "N", isSucess : true, code : 201, message : "좋아요 취소"});
     } catch (error) {
@@ -59,8 +59,9 @@ exports.likeComment = async function (req, res) {
     try {
         const userIdx = req.verifiedToken.id;
         const likeCommentParams = [userIdx,commentID];
-        const likeCommentRows = await commentDao.likeComment(likeCommentParams);
-        if(likeCommentRows === 'Y') return res.json({like : "Y", isSucess : true, code : 200, message : "좋아요"});
+        const likeCommentRows = await commentDao.likeComment(userIdx,commentID);
+        if(likeCommentRows === 'Y') {
+            return res.json({like : "Y", isSucess : true, code : 200, message : "좋아요"});}
         else if(likeCommentRows === 'N') return res.json({like : "N", isSucess : true, code : 201, message : "좋아요 취소"});
         
     } catch (error) {
@@ -100,6 +101,7 @@ exports.createComment = async function (req, res) {
  **/
 exports.deleteComment = async function (req, res) {
     const commentId = req.params['commentId'];
+    const activityId = req.query.activityId;
     // 댓글 삭제시 댓글 목록 바로 업데이트해주는 트랜잭션필요
     try {
         
@@ -111,8 +113,8 @@ exports.deleteComment = async function (req, res) {
         const [selectCommentIsDeletedRows] = await commentDao.selectCommentIsDeleted(commentId);
         if(!selectCommentIsDeletedRows) return res.json({isSucess : false, code : 320, message : "존재하지 않는 댓글입니다."});
 
-        const deleteCommentParams = [commentId];
-        const deleteCommmentRows = await commentDao.deleteComment(deleteCommentParams);
+        const deleteCommentParams = [commentId,activityId];
+        const deleteCommmentRows = await commentDao.deleteComment(commentId,activityId);
         return res.json({isSucess : true, code : 200, message : "댓글 삭제 성공"});
     } catch (error) {
         logger.error(`App - DeleteComment Query error\n: ${JSON.stringify(error)}`);

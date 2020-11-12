@@ -21,13 +21,13 @@ exports.requestFollow = async function (req,res) {
         const requestFollowParams = [userIdx,followUserIdx];
         //비공개 유저인 경우
         if(isPrivateUser[0].exist === 1){
-            const requestFollowPrivateUser = await followDao.requestFollowPrivateUser(requestFollowParams);
+            const requestFollowPrivateUser = await followDao.requestFollowPrivateUser(userIdx,followUserIdx);
             if(requestFollowPrivateUser === 'N') return res.json({follow : "N", isSucess : true, code : 201, message : "팔로우 취소"});
             else return res.json({followRequestId : requestFollowPrivateUser, isSucess : true, code : 202, message : "팔로우 요청"});
 
         }
         else if(isPrivateUser[0].exist ===0) {
-            const requestFollowRows = await followDao.requestFollow(requestFollowParams);
+            const requestFollowRows = await followDao.requestFollow(userIdx,followUserIdx);
             if(requestFollowRows === 'Y') return res.json({follow : "팔로잉",isSucess : true, code :200, message : "팔로우 성공"});
         }
 
