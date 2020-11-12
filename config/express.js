@@ -23,7 +23,9 @@ module.exports = function () {
     require('../src/app/routes/feedRoute')(app);
     require('../src/app/routes/commentRoute')(app);
     require('../src/app/routes/followRoute')(app);
+    require('../src/app/routes/storyRoute')(app);
     require('../src/app/routes/activityRoute')(app);
+
     
 
 

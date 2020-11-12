@@ -190,7 +190,6 @@ exports.getFeedDetail = async function (req, res){
     const feedId = req.params['feedId'];
     // path variable로 들어온 feedId가 존재하는 feedId인지 체크
     const [isExistingFeedId] = await feedDao.checkFeedId(feedId);
-    
     if(!isExistingFeedId[0].exist){
         return res.json({
             isSuccess: false,
@@ -198,10 +197,21 @@ exports.getFeedDetail = async function (req, res){
             message: "존재하지 않는 피드입니다."
         });
     }
+    // 팔로우하지 않고, 비공계 계정일 경우
+    const [userIdxOfFeed] = await feedDao.getUserIdxOfFeed(feedId);
+    const [isFollowing] = await userDao.isFollowing(userIdx,userIdxOfFeed[0].userIdx);
+    const [isPrivateUserIdx] = await userDao.isPrivateUserIdx(userIdxOfFeed[0].userIdx)
+    if(!isFollowing[0].exist && isPrivateUserIdx[0].exist){
+        return res.json({
+            isSuccess: false,
+            code: 301,
+            message: "비공계계정의 피드입니다."
+        });
+    }
     try{
         const getFeeds = await feedDao.getFeedDetail(userIdx,feedId);
         return res.json({
-            result: getFeeds[0],
+            result: getFeeds,
             isSuccess: true,
             code: 200,
             message: "Feed가 성공적으로 조회되었습니다."
