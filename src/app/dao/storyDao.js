@@ -15,10 +15,9 @@ async function uploadStory(userIdx, imgUrl, closeFriend) {
             uploadQuery,
             [userIdx,imgUrl]
             );
-        console.log(closeFriend);
         if(closeFriend)
             await connection.query(setColoseFriendQuery,[]);
-
+        
     } catch(err){
         console.log(err);
 
