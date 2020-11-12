@@ -211,7 +211,7 @@ exports.getFeedDetail = async function (req, res){
     try{
         const getFeeds = await feedDao.getFeedDetail(userIdx,feedId);
         return res.json({
-            result: getFeeds[0],
+            result: getFeeds,
             isSuccess: true,
             code: 200,
             message: "Feed가 성공적으로 조회되었습니다."
