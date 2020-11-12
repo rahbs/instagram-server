@@ -7,7 +7,8 @@ module.exports = function(app){
     //app.route('/signIn').post(user.signIn);
 
     //app.get('/check', jwtMiddleware, user.check);
-    app.get('/feed/feedId/comments',jwtMiddleware,comment.selectCommentList);
+    app.get('/feed/:feedId/comments',jwtMiddleware,comment.selectCommentList);
+    app.get('/comment/:commentId/recomment',jwtMiddleware,comment.selectReCommentList);
     app.route('/comment').post(jwtMiddleware, comment.createComment);
     app.route('/comment/recomment').post(jwtMiddleware, comment.createReComment);
     app.delete('/comment/:commentId', jwtMiddleware ,comment.deleteComment);

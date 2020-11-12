@@ -4,7 +4,7 @@ async function selectCommentByFeedId(selectCommentByFeedIdParams) {
   const connection = await pool.getConnection(async (conn) => conn);
   try {
     const selectCommentByFeedIdQuery = 
-    `select profileImgUrl,commentTable.commentID,commentTable.userIdx,content,
+    `select profileImgUrl,profile.userId,commentTable.commentID,commentTable.userIdx,content,
     case
         when timestampdiff(second,createdAt,now())<60
             then concat(timestampdiff(second,now(),createdAt),'초')
@@ -25,7 +25,7 @@ left outer join (select case when commentId !=0
  then commentId
  end as commentId,
  count(status ='Y') as likecounts from heart group by commentId)heartTable on heartTable.commentId = commentTable.commentID
-left outer join (select profileImgUrl, user.userIdx from user inner join comment c on user.userIdx = c.userIdx where feedId = ? && c.isDeleted = 'N' group by userIdx)profile on profile.userIdx = commentTable.userIdx
+left outer join (select profileImgUrl, user.userIdx,user.userId from user inner join comment c on user.userIdx = c.userIdx where feedId = ? && c.isDeleted = 'N' group by userIdx)profile on profile.userIdx = commentTable.userIdx
 limit ?,?;`;
  const Params = [selectCommentByFeedIdParams[0],selectCommentByFeedIdParams[0],Number(selectCommentByFeedIdParams[1]),Number(selectCommentByFeedIdParams[2])];
     const [selectCommentByFeedIdRows]= await connection.query(selectCommentByFeedIdQuery,Params);
@@ -34,6 +34,54 @@ limit ?,?;`;
     
   } catch (error) {
     logger.error(`App - selectCommentByFeedId function error\n: ${JSON.stringify(error)}`);
+    connection.release();
+    return false;
+  }
+}
+async function commentUser(commentUserParams){
+  const connection = await pool.getConnection(async (conn) => conn);
+  const commentUserQuery = `select profileImgUrl, userId, user.userIdx, caption from user
+  inner join feed f on user.userIdx = f.userIdx where f.userIdx =? && f.id = ?;`;
+  const [commentUserRows] = await connection.query(commentUserQuery,commentUserParams);
+  connection.release;
+  return commentUserRows[0]
+}
+
+//대댓글 상세보기
+async function selectReCommentByCommentId(commentId,limitStart,limitCount) {
+  const connection = await pool.getConnection(async (conn) => conn);
+  try {
+    const selectReCommentByCommentIdQuery = 
+    `select profileImgUrl,profile.userId,commentTable.commentID,commentTable.userIdx,content,
+    case
+        when timestampdiff(second,createdAt,now())<60
+            then concat(timestampdiff(second,now(),createdAt),'초')
+        when timestampdiff(second,createdAt,now())>=60 && timestampdiff(second,createdAt,now())<3600
+            then concat(timestampdiff(minute,createdAt,now()),'분')
+         when timestampdiff(second,createdAt,now())>=3600 && timestampdiff(second,createdAt,now())<86400
+                then concat(timestampdiff(hour,createdAt,now()),'시간')
+         when timestampdiff(second,createdAt,now())>=86400 && timestampdiff(second,createdAt,now())<604800
+             then concat(timestampdiff(day,createdAt,now()),'일')
+          when timestampdiff(second,createdAt,now())>=604800 && timestampdiff(second,createdAt,now())<3153600
+              then concat(timestampdiff(week,createdAt,now()),'주')
+         when timestampdiff(second,createdAt,now())>=3153600
+             then concat(timestampdiff(year,createdAt,now()),'년')
+             end as created
+    ,concat('좋아요 ',likecounts,'개') as likecount
+from (select id as commentID,comment.userIdx,content, createdAt from comment where comment.parentId = ? && comment.isDeleted ='N')commentTable
+left outer join (select case when commentId !=0
+ then commentId
+ end as commentId,
+ count(status ='Y') as likecounts from heart group by commentId)heartTable on heartTable.commentId = commentTable.commentID
+left outer join (select profileImgUrl, user.userIdx, user.userId from user inner join comment c on user.userIdx = c.userIdx where c.parentId = ? && c.isDeleted = 'N' group by userIdx)profile on profile.userIdx = commentTable.userIdx
+limit ?,?;`;
+ const Params = [commentId,commentId,Number(limitStart),Number(limitCount)];
+    const [selectReCommentByCommentIdRows]= await connection.query(selectReCommentByCommentIdQuery,Params);
+    connection.release();
+    return [selectReCommentByCommentIdRows]; 
+    
+  } catch (error) {
+    logger.error(`App - selectReCommentByCommentId function error\n: ${JSON.stringify(error)}`);
     connection.release();
     return false;
   }
@@ -174,16 +222,7 @@ async function deleteComment(commentId) {
     return selectCommentIsDeletedRows
   }
 
-//댓글 조회
-async function selectCommentList(selectCommentListParams) {
-    const connection = await pool.getConnection(async (conn) => conn);
-    const selectCommentListQuery = ``;
-  
-    const [selectCommentListRows] = await connection.query(selectCommentListQuery, selectCommentListParams);
-    connection.release();
-  
-    return selectCommentListRows
-  }
+
 
 //댓글 좋아요
 async function likeComment(userIdx,commentID) {
@@ -318,7 +357,7 @@ module.exports = {
     deleteComment,
     selectComment,
     selectCommentIsDeleted,
-    selectCommentList,
+    selectReCommentByCommentId,
     likeComment,
     likeFeed,
     commentUser,
