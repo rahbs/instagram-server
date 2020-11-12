@@ -79,10 +79,20 @@ exports.getStoryDetail = async function (req, res){
             message: "사용자가 조회할 수 없는 스토리 입니다."
         });
     }
-    try{
-        const getStory = await storyDao.getStoryDetail(storyId);
+
+    // 24시간이 지나지 않은 스토리인지 확인
+    const [isValidStory] = await storyDao.isValidStory(storyId);
+    if(!isValidStory[0].exist){
         return res.json({
-            result: getStory,
+            isSuccess: false,
+            code: 302,
+            message: "24시간이 지난 스토리는 조회할 수 없습니다."
+        });
+    }
+    try{
+        const getStory = await storyDao.getStoryDetail(storyId,userIdx);
+        return res.json({
+            result: getStory[0],
             isSuccess: true,
             code: 200,
             message: "Story가 성공적으로 조회되었습니다."
