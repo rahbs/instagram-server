@@ -32,6 +32,26 @@ exports.selectCommentList = async function (req, res) {
             return false;
     }
 }
+//대댓글 조회 api
+exports.selectReCommentList = async function (req, res) {
+    const commentId = req.params['commentId'];
+    const limitStart = req.query.limitStart;
+    const limitCount = req.query.limitCount;
+
+    try {
+        const userIdx = req.verifiedToken.id;
+        const selectCommentListParams = [commentId,limitStart,limitCount];
+        const [selectCommentByFeedIdRows] = await commentDao.selectReCommentByCommentId(commentId,limitStart,limitCount);
+
+        return res.json({
+            commentList : selectCommentByFeedIdRows,
+            isSucess : true, code : 200, message : "대댓글 조회 성공"});
+    } catch (error) {
+        logger.error(`App - selectReCommentList Query error\n: ${JSON.stringify(error)}`);
+        connection.release();
+            return false;
+    }
+}
 /**
  update : 2020.11.5
  16.like feed API = 피드좋아요/취소

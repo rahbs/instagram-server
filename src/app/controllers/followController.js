@@ -46,14 +46,16 @@ exports.followList = async function (req,res) {
     try {
         const userIdx = req.verifiedToken.id;
         const followType = req.query.follow;
+        const limitStart = req.query.limitStart;
+        const limitCount = req.query.limitCount;
         if(followType === "follower"){
-            const [followListRows] = await followDao.followList(userIdx,followType);
+            const [followListRows] = await followDao.followList(userIdx,followType,limitStart,limitCount);
             return res.json({
                 result : followListRows,
                 isSucess : true, code : 200, message : "팔로워 목록 조회"
             });
         }else if(followType === "following"){
-            const [followListRows] = await followDao.followList(userIdx,followType);
+            const [followListRows] = await followDao.followList(userIdx,followType,limitStart,limitCount);
             return res.json({
                 result : followListRows,
                 isSucess : true, code : 201, message : "팔로잉 목록 조회"
