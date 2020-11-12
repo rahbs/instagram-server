@@ -1,4 +1,3 @@
-const {pool} = require('../../../config/database');
 const {logger} = require('../../../config/winston');
 
 const feedDao = require('../dao/feedDao');
@@ -92,21 +91,10 @@ exports.getUserFeed = async function (req, res){
 
 exports.getFeeds = async function (req, res){
     const userIdx = req.verifiedToken.id;
-    const selectedUserIdx = req.query.userIdx;
 
-    // query string으로 들어온 usrIdx가 valid한지 체크
-    const [isExistingUserIdx] = await userDao.isExistingUserIdx(selectedUserIdx);
-    if(selectedUserIdx && !isExistingUserIdx[0].exist){
-        return res.json({
-            result: {},
-            isSuccess: false,
-            code: 201,
-            message: "query string로 들어온 usrIdx가 존재하지 않습니다."
-        });
-    }
     try{
         // getUserInfo
-        const getFeeds = await feedDao.getFeeds(userIdx,selectedUserIdx);
+        const getFeeds = await feedDao.getFeeds(userIdx);
         return res.json({
             result: getFeeds,
             isSuccess: true,
@@ -197,3 +185,29 @@ exports.modifyFeed = async function (req, res){
 };
     
 
+exports.getFeedDetail = async function (req, res){
+    const userIdx = req.verifiedToken.id;
+    const feedId = req.params['feedId'];
+    // path variable로 들어온 feedId가 존재하는 feedId인지 체크
+    const [isExistingFeedId] = await feedDao.checkFeedId(feedId);
+    
+    if(!isExistingFeedId[0].exist){
+        return res.json({
+            isSuccess: false,
+            code: 300,
+            message: "존재하지 않는 피드입니다."
+        });
+    }
+    try{
+        const getFeeds = await feedDao.getFeedDetail(userIdx,feedId);
+        return res.json({
+            result: getFeeds[0],
+            isSuccess: true,
+            code: 200,
+            message: "Feed가 성공적으로 조회되었습니다."
+        });
+    } catch (err){
+    logger.error(`App - getFeedDetail Query error\n: ${err.message}`);
+    return res.status(500).send(`Error: ${err.message}`);
+    }
+};

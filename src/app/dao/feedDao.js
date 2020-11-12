@@ -119,7 +119,7 @@ async function getUserFeedList(userIdx){
     }    
 }
 
-async function getFeeds(userIdx,selectedUserIdx){
+async function getFeeds(userIdx){
     const connection = await pool.getConnection(async (conn) => conn);
     try{
         let getFeedInfoQuery = `
@@ -130,13 +130,6 @@ async function getFeeds(userIdx,selectedUserIdx){
                     THEN true
                     ELSE false
                 END AS isLiked, likeUser.userId as likeUserId, likeNum
-        #        CASE
-        #             WHEN numLikedFollowingUser > 0 and a.likeNum = 1
-        #             THEN CONCAT(likeUser.userId,'님이 좋아합니다')
-        #             WHEN numLikedFollowingUser > 0 and a.likeNum > 1
-        #             THEN CONCAT(likeUser.userId,'님 외 ', a.likeNum-1,'명이 좋아합니다.') # + '명이 좋아합니다.'
-        #             ELSE CONCAT ('좋아요 ',likeNum,'개')
-        #        END AS likeNum
         from
             (SELECT feed.id as feedId_,feed.userIdx,feed.location, feed.caption, COUNT(heart.feedId) as likeNum,isDeleted, feed.createdAt
             FROM feed
@@ -175,6 +168,7 @@ async function getFeeds(userIdx,selectedUserIdx){
                 GROUP BY (feed.id)) as comment
             ON comment.feedId = a.feedId_
         WHERE a.isDeleted = 'N'
+        ORDER BY a.createdAt DESC;
                     `;
         const getFeedImgUrls = `
         select feedImgUrl as imgUrl
@@ -183,9 +177,9 @@ async function getFeeds(userIdx,selectedUserIdx){
         on feed.id = feedImg.feedId
         where feed.id = ?;
                     `;
-        if(selectedUserIdx) 
-            getFeedInfoQuery = getFeedInfoQuery + ` and a.userIdx = ${selectedUserIdx}`;
-        getFeedInfoQuery = getFeedInfoQuery+ ' ORDER BY a.createdAt DESC;';
+        // if(selectedUserIdx) 
+        //     getFeedInfoQuery = getFeedInfoQuery + ` and a.userIdx = ${selectedUserIdx}`;
+        // getFeedInfoQuery = getFeedInfoQuery+ ' ORDER BY a.createdAt DESC;';
         const [feedInfoList] = await connection.query(
             getFeedInfoQuery,
             [userIdx,userIdx,userIdx,userIdx,userIdx,userIdx]
@@ -269,7 +263,90 @@ async function modifyFeed(feedId,caption){
     }
 }
 
-//async function uploadFeed
+async function getFeedDetail(userIdx,feedId){
+    const connection = await pool.getConnection(async (conn) => conn);
+    try{
+        let getFeedInfoQuery = `
+        SELECT feedId_, a.userIdx as userIdx, user.userId as userId, user.profileImgUrl as profileImgUrl,
+                likeUser.profileImgUrl as likeUserProfileImgUrl, location, caption, commentNum,
+                CASE
+                    WHEN likeCheck.feedId is not null
+                    THEN true
+                    ELSE false
+                END AS isLiked, likeUser.userId as likeUserId, likeNum
+        from
+            (SELECT feed.id as feedId_,feed.userIdx,feed.location, feed.caption, COUNT(heart.feedId) as likeNum,isDeleted, feed.createdAt
+            FROM feed
+            LEFT JOIN (select * from heart where status = 'F' and isLiked = 'Y') as heart
+                ON heart.feedId = feed.id
+            LEFT JOIN (select * from follow where follow = 'Y' and followingUserIdx = ?) as follow
+                ON heart.userIdx = follow.followedUserIdx
+            WHERE feed.userIdx IN (SELECT followedUserIdx from follow where follow = 'Y' and followingUserIdx = ?
+            UNION
+            SELECT ? AS followedUserIdx)
+            GROUP BY (feed.id)) as a
+        LEFT JOIN
+                (SELECT feed.id as feedId__, heart.userIdx  as likedFollowingUserIdx,COUNT( heart.userIdx) as numLikedFollowingUser
+                FROM feed
+                LEFT JOIN (select * from heart where status = 'F' and isLiked = 'Y') as heart
+                    ON heart.feedId = feed.id
+                JOIN (SELECT followedUserIdx from follow where follow = 'Y' and followingUserIdx = ? 
+                        UNION
+                        SELECT ? AS followedUserIdx) as follow
+                    ON heart.userIdx = follow.followedUserIdx
+                GROUP BY (feed.id)) as likefollower
+            ON a.feedId_ = likefollower.feedId__
+        LEFT JOIN (SELECT userId, profileImgUrl, userIdx from user) as likeUser
+            ON likeUser.userIdx = likedFollowingUserIdx
+        LEFT JOIN (SELECT userId, profileImgUrl, userIdx from user) as user
+            ON user.userIdx = a.userIdx
+        LEFT JOIN (SELECT feedId
+            FROM heart
+            WHERE heart.userIdx = ? and isLiked = 'Y')as likeCheck
+            ON a.feedId_ = likeCheck.feedId
+        LEFT JOIN
+                (SELECT feed.id as feedId, COUNT(comment.feedId) as commentNum
+                FROM feed
+                LEFT JOIN comment
+                    ON comment.feedId = feed.id
+                GROUP BY (feed.id)) as comment
+            ON comment.feedId = a.feedId_
+        WHERE a.isDeleted = 'N' and feedId_ = ? 
+        ORDER BY a.createdAt DESC;
+                    `;
+        const getFeedImgUrls = `
+        select feedImgUrl as imgUrl
+        from feed
+        join feedImg
+        on feed.id = feedImg.feedId
+        where feed.id = ?;
+                    `;
+
+        const [feedInfoList] = await connection.query(
+            getFeedInfoQuery,
+            [userIdx,userIdx,userIdx,userIdx,userIdx,userIdx,feedId]
+            );
+
+        let result = []
+        for(feedInfo of feedInfoList){
+            feedInfo['feedId'] = feedInfo['feedId_'];
+            delete feedInfo['feedId_'];
+            feedId = feedInfo['feedId'];
+            let [feedImgUrls] = await connection.query(
+                getFeedImgUrls,
+                [feedId]
+            )
+            result.push({feedInfo,feedImgUrls});
+        }
+        
+        return result;
+    } catch(err){
+        console.log(err);
+    } finally{
+        connection.release();
+    }    
+}
+
 module.exports = {
     uploadFeed,
     getUserInfo,
@@ -278,5 +355,6 @@ module.exports = {
     getUserIdxOfFeed,
     checkFeedId,
     deleteFeed,
-    modifyFeed
+    modifyFeed,
+    getFeedDetail
 };
