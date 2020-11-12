@@ -255,6 +255,19 @@ async function deleteFeed(feedId){
         connection.release();
     }
 }
+async function modifyFeed(feedId,caption){
+    const connection = await pool.getConnection(async (conn) => conn);
+    try{
+        const query = `update feed set caption = ? where id = ? and isDeleted = 'N'`;
+        const userIdx = await connection.query(query,[caption,feedId]);
+        return userIdx;
+  
+    } catch(err){
+        console.log(err);
+    } finally{
+        connection.release();
+    }
+}
 
 //async function uploadFeed
 module.exports = {
@@ -264,5 +277,6 @@ module.exports = {
     getFeeds,
     getUserIdxOfFeed,
     checkFeedId,
-    deleteFeed
+    deleteFeed,
+    modifyFeed
 };

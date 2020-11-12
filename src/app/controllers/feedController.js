@@ -154,3 +154,46 @@ exports.deleteFeed = async function (req, res){
     }
 };
     
+exports.modifyFeed = async function (req, res){
+    const {caption} = req.body;
+    const userIdx = req.verifiedToken.id; // 현재 사용자의 userIdx
+    const feedId = req.params['feedId']; // path variable로 들어온 feedId
+    // path variable로 들어온 feedId가 존재하는 feedId인지 체크
+    const [isExistingFeedId] = await feedDao.checkFeedId(feedId);
+    if(!caption){
+        return res.json({
+            isSuccess: false,
+            code: 302,
+            message: "body에 caption을 입력해 주세요"
+        });
+    }
+    if(!isExistingFeedId[0].exist){
+        return res.json({
+            isSuccess: false,
+            code: 300,
+            message: "존재하지 않는 피드입니다."
+        });
+    }
+    // path variable로 들어온 feedId가 현재 로그인된 사용자의 피드인지 체크
+    const [userIdxOfFeed] = await feedDao.getUserIdxOfFeed(feedId);
+    if(userIdxOfFeed[0].userIdx != userIdx){
+        return res.json({
+            isSuccess: false,
+            code: 301,
+            message: "사용자의 feedId가 아닙니다.(로그인된 유저의 피드만 삭제가능)"
+        });
+    }
+    try{
+        await feedDao.modifyFeed(feedId,caption);
+        return res.json({
+            isSuccess: true,
+            code: 200,
+            message: "피드가 성공적으로 수정되었습니다."
+        });
+    } catch (err){
+    logger.error(`App - modifyFeed Query error\n: ${err.message}`);
+    return res.status(500).send(`Error: ${err.message}`);
+    }
+};
+    
+
