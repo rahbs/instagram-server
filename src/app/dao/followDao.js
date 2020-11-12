@@ -167,7 +167,7 @@ async function acceptFollow(acceptFollowParams) {
         //const selectUserParams = [followUserIdx,userIdx];
         //const [selectUserRows] = await connection.query(selectUserQuery,);
         const user_ = findIdQueryRows[0].edId;
-        const writing = userId+"님이 회원님을 팔로우하기 시작했습니다.:\n";
+        const writing = userId+"님이 회원님을 팔로우하기 시작했습니다.";
         const profileImgUrlQuery =`select profileImgUrl from user where userIdx=?;`; 
         const [profileImgUrlRows] = await connection.query(profileImgUrlQuery,findIdQueryRows[0].ingId);
         const profileImgUrl = profileImgUrlRows[0].profileImgUrl;
