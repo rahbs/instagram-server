@@ -97,13 +97,14 @@ async function requestFollowPrivateUser(userIdx,followUserIdx) {
 }
 
 //팔로잉/팔로워 리스트 조회
-async function followList(userIdx,followType){
+async function followList(userIdx,followType,limitStart,limitCount){
     try {
         const connection = await pool.getConnection(async (conn) => conn);
         const selectFollowUserQuery = `select userIdx,userId, profileImgUrl, name from user where userIdx = ?;`;
         if(followType === "follower"){
-            const followerListQuery = `select followingUserIdx as Id from follow where followedUserIdx =?;`;
-            const [followListRows] = await connection.query(followerListQuery,userIdx);
+            const followerListQuery = `select followingUserIdx as Id from follow where followedUserIdx =? limit ?,?;`;
+            const params = [userIdx,Number(limitStart),Number(limitCount)];
+            const [followListRows] = await connection.query(followerListQuery,params);
             var followList = new Array();
             for(var i =0;i<followListRows.length;i++){
                 followList[i] = followListRows[i].Id;
@@ -117,8 +118,9 @@ async function followList(userIdx,followType){
             return [List]
         }
         else if(followType === "following"){
-            const followingListQuery = `select followedUserIdx as Id from follow where followingUserIdx = ?;`;
-            const [followListRows] = await connection.query(followingListQuery,userIdx);
+            const followingListQuery = `select followedUserIdx as Id from follow where followingUserIdx = ? limit ?,?;`;
+            const params = [userIdx,Number(limitStart),Number(limitCount)];
+            const [followListRows] = await connection.query(followingListQuery,params);
             var followList = new Array();
             for(var i =0;i<followListRows.length;i++){
                 followList[i] = followListRows[i].Id;
