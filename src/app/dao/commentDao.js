@@ -51,14 +51,16 @@ async function insertComment(feedId,userIdx,comment) {
   const connection = await pool.getConnection(async (conn) => conn);
   try {
     await connection.beginTransaction();
-    const insertCommentQuery = `insert into comment(Id,feedId,userIdx, content) values (LAST_INSERT_ID(),?,?,?);`;
+    const insertCommentQuery = `insert into comment(feedId,userIdx, content) values (?,?,?);`;
     const selectUserInfoQuery = `select profileImgUrl,userId from user where userIdx = ?;`;
     const insertCommentParams = [feedId,userIdx,comment];
     const [insertCommentRows] = await connection.query(insertCommentQuery, insertCommentParams);
     const [selectUserInfoRows] = await connection.query(selectUserInfoQuery,userIdx);
-    const Rows = [insertCommentRows.insertId, selectUserInfoRows[0].profileImgUrl, selectUserInfoRows[0].userId];
+    const ID = await connection.query('SELECT last_insert_id() as idx;');
+    
+    
 
-    const insertAcitivityQuery = `insert into activity(userIdx, userId, writing, user_,profileImgUrl) values(?,?,?,?,?);`;
+    const insertAcitivityQuery = `insert into activity(userIdx, userId, writing, user_,profileImgUrl,commentId values(?,?,?,?,?,?);`;
     const selectUserIdQuery = `select userId from user where userIdx = ?;`;
     const [selectUserIdRows] = await connection.query(selectUserIdQuery,userIdx);
     const userId = selectUserIdRows[0].userId;
@@ -69,25 +71,41 @@ async function insertComment(feedId,userIdx,comment) {
     const profileImgUrlQuery =`select profileImgUrl from user where userIdx=?;`; 
     const [profileImgUrlRows] = await connection.query(profileImgUrlQuery,userIdx);
     const profileImgUrl = profileImgUrlRows[0].profileImgUrl;
-    const insertAcitivityParams = [userIdx,userId,writing,user_,profileImgUrl];
+    const commentId = ID[0][0].idx;
+    const insertAcitivityParams = [userIdx,userId,writing,user_,profileImgUrl,commentId];
     const [insertAcitivityRows] = await connection.query(insertAcitivityQuery,insertAcitivityParams);
+    
+    const Rows = [ID[0][0].idx, selectUserInfoRows[0].profileImgUrl, selectUserInfoRows[0].userId];;
     await connection.commit();
     return Rows;
   } catch (error) {
+    logger.error(`App - insertComment function error\n: ${JSON.stringify(error)}`);
+    //console.log(error);
     await connection.rollback();
   }finally{
     connection.release();
   }  
 }
 // 댓글삭제
-async function deleteComment(deleteCommentParams) {
+async function deleteComment(commentId) {
+
     const connection = await pool.getConnection(async (conn) => conn);
-    const deleteCommentQuery = `update comment set isDeleted='Y' where id = ?`;
-  
-    const [deleteCommentRows] = await connection.query(deleteCommentQuery, deleteCommentParams);
-    connection.release();
-  
-    return deleteCommentRows
+    try {
+      await connection.beginTransaction();
+      const deleteCommentQuery = `update comment set isDeleted='Y' where id = ?`;
+      const deleteCommentParams = [commentId];
+      const updateActivityQuery = `update activity set isDeleted = 'Y' where commentId = ?;`;
+      const [updateActivityRows] = await connection.query(updateActivityQuery,commentId);
+      const [deleteCommentRows] = await connection.query(deleteCommentQuery, deleteCommentParams);
+      await connection.commit();
+      
+      return deleteCommentRows
+    } catch (error) {
+      logger.error(`App - deleteComment function error\n: ${JSON.stringify(error)}`);
+      await connection.rollback();
+    }finally{
+      connection.release();
+    }  
   }
 //유효한 댓글 조회
   async function selectComment(selectCommentParams) {
@@ -122,62 +140,129 @@ async function selectCommentList(selectCommentListParams) {
   }
 
 //댓글 좋아요
-async function likeComment(likeCommentParams) {
+async function likeComment(userIdx,commentID) {
     const connection = await pool.getConnection(async (conn) => conn);
+    try {
+      await connection.beginTransaction();
+      const likeCommentQuery = `insert into heart(userIdx,commentId,feedId,isLiked,status) values (?,?,0,'Y','C');`;
+      const likeCommenthateQuery = `update heart set isLiked = 'N' where userIdx = ? && commentId = ? && status ='C';`;
+      const likeCommentagainQuery = `update heart set isLiked = 'Y' where userIdx = ? && commentId = ? && status ='C';`;
+      const searchlikeCommentQuery = `select isLiked from heart where userIdx = ? && commentId = ? && status ='C';`;
+      const likeCommentParams = [userIdx,commentID];
+      const [searchlikeCommentRows]= await connection.query(searchlikeCommentQuery, likeCommentParams);
     
-    const likeCommentQuery = `insert into heart(userIdx,commentId,feedId,isLiked,status) values (?,?,0,'Y','C');`;
-    const likeCommenthateQuery = `update heart set isLiked = 'N' where userIdx = ? && commentId = ? && status ='C';`;
-    const likeCommentagainQuery = `update heart set isLiked = 'Y' where userIdx = ? && commentId = ? && status ='C';`;
-    const searchlikeCommentQuery = `select isLiked from heart where userIdx = ? && commentId = ? && status ='C';`;
+
+    const insertAcitivityQuery = `insert into activity(userIdx, userId, writing, user_,profileImgUrl,commentId,commentlike) values(?,?,?,?,?,?,'Y');`;
+    const selectUserIdQuery = `select userId from user where userIdx = ?;`;
+    const [selectUserIdRows] = await connection.query(selectUserIdQuery,userIdx);
+    const userId = selectUserIdRows[0].userId;
+    const selectUserQuery = `select userIdx from comment where Id = ?;`;
+    const [selectUserRows] = await connection.query(selectUserQuery,commentID);
+    const user_ = selectUserRows[0].userIdx;
+    const writing = userId+"님이 회원님의 댓글을 좋아합니다:\n";
+    const profileImgUrlQuery =`select profileImgUrl from user where userIdx=?;`; 
+    const [profileImgUrlRows] = await connection.query(profileImgUrlQuery,userIdx);
+    const profileImgUrl = profileImgUrlRows[0].profileImgUrl;
+    const insertAcitivityParams = [userIdx,userId,writing,user_,profileImgUrl,commentID];
     
-    const [searchlikeCommentRows]= await connection.query(searchlikeCommentQuery, likeCommentParams);
     
-    if(searchlikeCommentRows.length <1){
-        const [likeCommentRows] = await connection.query(likeCommentQuery, likeCommentParams);
-        connection.release();
-        return 'Y'
-    }
-    else if(searchlikeCommentRows[0].isLiked === 'Y'){
+
+      if(searchlikeCommentRows.length <1){
+          const [likeCommentRows] = await connection.query(likeCommentQuery, likeCommentParams);
+          const [insertAcitivityRows] = await connection.query(insertAcitivityQuery,insertAcitivityParams);
+          await connection.commit();
+          return 'Y'
+      }
+      else if(searchlikeCommentRows[0].isLiked === 'Y'){
         const [likeCommentRows] = await connection.query(likeCommenthateQuery, likeCommentParams);
-        connection.release();
+        const updateActivityQuery = `update activity set commentlike ='N', isDeleted = 'Y' where commentId = ? && commentLike = 'Y';`;
+        const updateActivityRows = await connection.query(updateActivityQuery,commentID);
+        await connection.commit();
         return 'N'
-    }
-    else if(searchlikeCommentRows[0].isLiked === 'N'){
+      }
+      else if(searchlikeCommentRows[0].isLiked === 'N'){
         const [likeCommentRows] = await connection.query(likeCommentagainQuery, likeCommentParams);
-        connection.release();
+        const [selectActivity] = await connection.query('select commentlike from activity where commentId = ?;',commentID);
+        if(selectActivity.length < 1){
+          const [insertAcitivityRows] = await connection.query(insertAcitivityQuery,insertAcitivityParams);
+          await connection.commit();
+          return 'Y'
+        }
+        const updateActivityQuery = `update activity set commentlike ='Y', isDeleted = 'N' where commentId = ? && commentLike = 'N';`;
+        const updateActivityRows = await connection.query(updateActivityQuery,commentID);
+        await connection.commit();
         return 'Y'
-    }    
-    
-  
+      }   
     return null;
+    } catch (error) {
+      console.log(error);
+      logger.error(`App - likeComment function error\n: ${JSON.stringify(error)}`);
+      await connection.rollback();
+    }finally{
+      connection.release();
+    }
   }
 //피드 좋아요/취소
-async function likeFeed(likeFeedParams) {
+async function likeFeed(userIdx,feedID) {
     const connection = await pool.getConnection(async (conn) => conn);
+    try {
+      await connection.beginTransaction();
+      const likeFeedQuery = `insert into heart(userIdx,commentId,feedId,isLiked,status) values (?,0,?,'Y','F');`;
+      const likeFeedhateQuery = `update heart set isLiked = 'N' where userIdx = ? && feedId = ? && status ='F';`;
+      const likeFeedagainQuery = `update heart set isLiked = 'Y' where userIdx = ? && feedId = ? && status ='F';`;
+      const searchlikeFeedQuery = `select isLiked from heart where userIdx = ? && feedId = ? && status ='F';`;
+      const likeFeedParams = [userIdx,feedID];
+      const [searchlikeFeedRows]= await connection.query(searchlikeFeedQuery, likeFeedParams);
     
-    const likeFeedQuery = `insert into heart(userIdx,commentId,feedId,isLiked,status) values (?,0,?,'Y','F');`;
-    const likeFeedhateQuery = `update heart set isLiked = 'N' where userIdx = ? && feedId = ? && status ='F';`;
-    const likeFeedagainQuery = `update heart set isLiked = 'Y' where userIdx = ? && feedId = ? && status ='F';`;
-    const searchlikeFeedQuery = `select isLiked from heart where userIdx = ? && feedId = ? && status ='F';`;
-    
-    const [searchlikeFeedRows]= await connection.query(searchlikeFeedQuery, likeFeedParams);
-    
-    if(searchlikeFeedRows.length <1){
+      const insertAcitivityQuery = `insert into activity(userIdx, userId, writing, user_,profileImgUrl,feedId,feedlike) values(?,?,?,?,?,?,'Y');`;
+      const selectUserIdQuery = `select userId from user where userIdx = ?;`;
+      const [selectUserIdRows] = await connection.query(selectUserIdQuery,userIdx);
+      const userId = selectUserIdRows[0].userId;
+      const selectUserQuery = `select userIdx from feed where Id = ?;`;
+      const [selectUserRows] = await connection.query(selectUserQuery,feedID);
+      const user_ = selectUserRows[0].userIdx;
+      const writing = userId+"님이 회원님의 게시물을 좋아합니다:\n";
+      const profileImgUrlQuery =`select profileImgUrl from user where userIdx=?;`; 
+      const [profileImgUrlRows] = await connection.query(profileImgUrlQuery,userIdx);
+      const profileImgUrl = profileImgUrlRows[0].profileImgUrl;
+      const insertAcitivityParams = [userIdx,userId,writing,user_,profileImgUrl,feedID];
+
+
+      if(searchlikeFeedRows.length <1){
         const [likeFeedRows] = await connection.query(likeFeedQuery, likeFeedParams);
-        connection.release();
+        const [insertAcitivityRows] = await connection.query(insertAcitivityQuery,insertAcitivityParams);
+          await connection.commit();
         return 'Y'
-    }
-    else if(searchlikeFeedRows[0].isLiked === 'Y'){
+      }
+      else if(searchlikeFeedRows[0].isLiked === 'Y'){
         const [likeFeedRows] = await connection.query(likeFeedhateQuery, likeFeedParams);
-        connection.release();
+        const updateActivityQuery = `update activity set feedlike ='N', isDeleted = 'Y' where feedId = ? && isDeleted = 'N';`;
+        const updateActivityRows = await connection.query(updateActivityQuery,feedID);
+        await connection.commit();
         return 'N'
-    }
-    else if(searchlikeFeedRows[0].isLiked === 'N'){
+      }
+      else if(searchlikeFeedRows[0].isLiked === 'N'){
         const [likeFeedRows] = await connection.query(likeFeedagainQuery, likeFeedParams);
-        connection.release();
+        const [selectActivity] = await connection.query('select feedlike from activity where feedId = ?;',feedID);
+        if(selectActivity.length < 1){
+          const [insertAcitivityRows] = await connection.query(insertAcitivityQuery,insertAcitivityParams);
+          await connection.commit();
+          return 'Y'
+        }
+        const updateActivityQuery = `update activity set feedlike ='Y', isDeleted = 'N' where feedId = ? && isDeleted = 'Y';`;
+        const updateActivityRows = await connection.query(updateActivityQuery,feedID);
+          await connection.commit();
         return 'Y'
-    }    
+      }    
     return null;
+      
+    } catch (error) {
+      logger.error(`App - likeFeed function error\n: ${JSON.stringify(error)}`);
+      await connection.rollback();
+    } finally{
+      connection.release();
+    }
+    
   }
 
 

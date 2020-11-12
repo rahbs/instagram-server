@@ -2,36 +2,71 @@ const { pool } = require("../../../config/database");
 
 
 //팔로우 요청
-async function requestFollow(requestFollowParams) {
+async function requestFollow(userIdx,followUserIdx) {
     const connection = await pool.getConnection(async (conn) => conn);
-    const selectFollowQuery = `select follow from follow where followingUserIdx = ? && followedUserIdx = ?;`;
-    const requestFollowhateQuery = `update follow set follow = 'N' where followingUserIdx = ? && followedUserIdx = ?;`;
-    const requestFollowagainQuery = `update follow set follow = 'Y' where followingUserIdx = ? && followedUserIdx = ?;`;
+    try {
+        await connection.beginTransaction();
+        const requestFollowParams = [userIdx,followUserIdx];
+        const selectFollowQuery = `select follow from follow where followingUserIdx = ? && followedUserIdx = ?;`;
+        const requestFollowhateQuery = `update follow set follow = 'N' where followingUserIdx = ? && followedUserIdx = ?;`;
+        const requestFollowagainQuery = `update follow set follow = 'Y' where followingUserIdx = ? && followedUserIdx = ?;`;
 
-    const requestFollowQuery =`insert into follow(followingUserIdx, followedUserIdx) values(?,?) ;`;
-    const [selectFollowRows] = await connection.query(selectFollowQuery,requestFollowParams);
+        const requestFollowQuery =`insert into follow(followingUserIdx, followedUserIdx) values(?,?) ;`;
+        const [selectFollowRows] = await connection.query(selectFollowQuery,requestFollowParams);
+
+    //
+    const insertAcitivityQuery = `insert into activity(userIdx, userId, writing, user_,profileImgUrl,followingUserIdx,followedUserIdx) values(?,?,?,?,?,?,?);`;
+      const selectUserIdQuery = `select userId from user where userIdx = ?;`;
+      const [selectUserIdRows] = await connection.query(selectUserIdQuery,userIdx);
+      const userId = selectUserIdRows[0].userId;
+      //const selectUserQuery = `select followingUserIdx from follow where followingUserIdx = ? && followedUserIdx = ?;`;
+      //const selectUserParams = [followUserIdx,userIdx];
+      //const [selectUserRows] = await connection.query(selectUserQuery,);
+      const user_ = followUserIdx;
+      const writing = userId+"님이 회원님을 팔로우하기 시작했습니다.:\n";
+      const profileImgUrlQuery =`select profileImgUrl from user where userIdx=?;`; 
+      const [profileImgUrlRows] = await connection.query(profileImgUrlQuery,userIdx);
+      const profileImgUrl = profileImgUrlRows[0].profileImgUrl;
+
+
     if(selectFollowRows.length < 1){
         const [requestFollowRows] = await connection.query(requestFollowQuery,requestFollowParams);
-        connection.release();
+        const insertAcitivityParams = [userIdx,userId,writing,user_,profileImgUrl,userIdx,followUserIdx];
+        const [insertAcitivityRows] = await connection.query(insertAcitivityQuery,insertAcitivityParams);
+        await connection.commit();
         return 'Y'
-    } //팔로우 취소
-    // else if(selectFollowRows[0].follow === 'Y'){
-    //     const [requestFollowRows] = await connection.query(requestFollowhateQuery,requestFollowParams);
-    //     return 'N'
-    // }
+    } 
     else if(selectFollowRows[0].follow === 'N'){
         const [requestFollowRows] = await connection.query(requestFollowagainQuery,requestFollowParams);
-        connection.release();
+        
+        const updateActivityQuery = `update activity set isDeleted = 'Y' where followingUserIdx =? &&followedUserIdx=?;`;
+        const updateActivityParams = [userIdx,followUserIdx];
+        const updateActivityRows = await connection.query(updateActivityQuery,updateActivityParams);
+        await connection.commit();
         return 'Y'
+    }
+    else if(selectFollowRows[0].follow === 'Y'){
+        const [requestFollowRows] = await connection.query(requestFollowhateQuery,requestFollowParams);
+        await connection.commit();
+        return 'N'
     }
     else {
-        connection.release();
+
+        await connection.commit();
         return 'Y'
     }
+    } catch (error) {
+        logger.error(`App - requestFollow function error\n: ${JSON.stringify(error)}`);
+        await connection.rollback();
+    } finally{
+        connection.release();
+    }
+    
 }
 //비공개 유저 팔로우요청
-async function requestFollowPrivateUser(requestFollowPrivateUserParams) {
+async function requestFollowPrivateUser(userIdx,followUserIdx) {
     const connection = await pool.getConnection(async (conn) => conn);
+    const requestFollowPrivateUserParams = [userIdx,followUserIdx];
     const requestFollowPrivateUserQuery = `insert into followRequest(id,requestingUserIdx, requestedUserIdx) values (LAST_INSERT_ID(),?,?);`;
     const requestFollowPrivateUserExistQuery = `select exists(select Id from followRequest where requestingUserIdx =? && requestedUserIdx = ? && isDeleted = 'N') as exist;`;
     const requestFollowAgainPrivateUserExistQuery = `select exists(select Id from followRequest where requestingUserIdx =? && requestedUserIdx = ? && isDeleted = 'Y') as exist;`;
@@ -114,16 +149,42 @@ async function acceptFollow(acceptFollowParams) {
     const requestFollowQuery =`insert into follow(followingUserIdx, followedUserIdx) values(?,?) ;`;
 
     const findIdQuery = `select requestingUserIdx as ingId, requestedUserIdx as edId from followRequest where id=?`;
+
+    
     try {
         await connection.beginTransaction();
         const [acceptFollowRows] = await connection.query(acceptFollowQuery,acceptFollowParams);
         const [findIdQueryRows] = await connection.query(findIdQuery,acceptFollowParams);
         requestFollowParams = [findIdQueryRows[0].ingId,findIdQueryRows[0].edId];
         const [selectFollowRows] = await connection.query(selectFollowQuery,requestFollowParams);
+
+
+        const insertAcitivityQuery = `insert into activity(userIdx, userId, writing, user_,profileImgUrl,followingUserIdx,followedUserIdx) values(?,?,?,?,?,?,?);`;
+        const selectUserIdQuery = `select userId from user where userIdx = ?;`;
+        const [selectUserIdRows] = await connection.query(selectUserIdQuery,findIdQueryRows[0].ingId);
+        const userId = selectUserIdRows[0].userId;
+        //const selectUserQuery = `select followingUserIdx from follow where followingUserIdx = ? && followedUserIdx = ?;`;
+        //const selectUserParams = [followUserIdx,userIdx];
+        //const [selectUserRows] = await connection.query(selectUserQuery,);
+        const user_ = findIdQueryRows[0].edId;
+        const writing = userId+"님이 회원님을 팔로우하기 시작했습니다.";
+        const profileImgUrlQuery =`select profileImgUrl from user where userIdx=?;`; 
+        const [profileImgUrlRows] = await connection.query(profileImgUrlQuery,findIdQueryRows[0].ingId);
+        const profileImgUrl = profileImgUrlRows[0].profileImgUrl;
+
+
         if(selectFollowRows.length < 1){
             const [requestFollowRows] = await connection.query(requestFollowQuery,requestFollowParams);
+            const insertAcitivityParams = [findIdQueryRows[0].ingId,userId,writing,user_,profileImgUrl,findIdQueryRows[0].ingId,findIdQueryRows[0].edId];
+            const [insertAcitivityRows] = await connection.query(insertAcitivityQuery,insertAcitivityParams);
+            console.log(insertAcitivityRows);
+            
         } else if(selectFollowRows[0].follow === 'N'){
             const [requestFollowRows] = await connection.query(requestFollowagainQuery,requestFollowParams);
+
+            const updateActivityQuery = `update activity set isDeleted = 'Y' where followingUserIdx =? &&followedUserIdx=?;`;
+            const updateActivityParams = [findIdQueryRows[0].ingId,findIdQueryRows[0].edId];
+            const updateActivityRows = await connection.query(updateActivityQuery,updateActivityParams);
         }
         await connection.commit();
         return acceptFollowRows;
@@ -189,7 +250,7 @@ async function isValidFollow(isValidFollowParams){
     const connection = await pool.getConnection(async (conn) => conn);
     const isValidFollowQuery = `select followedUserIdx as Id from follow where followedUserIdx = ? && followingUserIdx = ? && follow = 'Y';`;
     const [isValidFollowRows] = await connection.query(isValidFollowQuery,isValidFollowParams);
-    connection.release;
+    connection.release();
     if(isValidFollowRows.length <1){
         return 0;
     }
@@ -231,19 +292,33 @@ async function hideFeedOrStory(kind,userIdx,userId){
     return ;
 }
 //팔로우 취소
-async function cancelFollowing(cancelFollowParams) {
+async function cancelFollowing(userId,userIdx) {
     const connection = await pool.getConnection(async (conn) => conn);
-    const selectFollowQuery = `select follow from follow where followedUserIdx = ? && followingUserIdx = ?;`;
-    const [selectFollowRows] = await connection.query(selectFollowQuery,cancelFollowParams);
-    if(selectFollowRows.length < 1){
+    const cancelFollowParams = [userId,userIdx];
+    try {
+        await connection.beginTransaction();
+        const selectFollowQuery = `select follow from follow where followedUserIdx = ? && followingUserIdx = ?;`;
+        const [selectFollowRows] = await connection.query(selectFollowQuery,cancelFollowParams);
+        if(selectFollowRows.length < 1){
 
+        }
+        else{
+            const cancelFollowQuery = `update follow set follow = 'N' where followedUserIdx = ? && followingUserIdx = ?;`;
+            const [cancelFollowRows] = await connection.query(cancelFollowQuery,cancelFollowParams);
+
+            const updateActivityQuery = `update activity set isDeleted = 'Y' where followingUserIdx =? &&followedUserIdx=?;`;
+            const updateActivityParams = [userIdx,userId];
+            const updateActivityRows = await connection.query(updateActivityQuery,updateActivityParams);
+            await connection.commit();
+            return cancelFollowRows;
+        }
+    } catch (error) {
+        logger.error(`App - cancelFollowing Transaction Query error\n: ${JSON.stringify(error)}`);
+        await connection.rollback()
+    } finally{
+        connection.release();
     }
-    else{
-        const cancelFollowQuery = `update follow set follow = 'N' where followedUserIdx = ? && followingUserIdx = ?;`;
-        const [cancelFollowRows] = await connection.query(cancelFollowQuery,cancelFollowParams);
-        connection.release();    
-        return cancelFollowRows;
-    }
+    
 }
 
 //팔로워 삭제
@@ -326,6 +401,7 @@ async function notFollowingUserList(userIdx) {
             const [notFollowingUserListRows] = await connection.query(selectNotFollowingUserQuery,notFollowUser[i]);
             Rows[i] = notFollowingUserListRows[0];
         }
+        connection.release();
         return [Rows];
     } catch (error) {
         logger.error(`App - notFollowingUserList function error\n: ${JSON.stringify(error)}`);

@@ -21,14 +21,15 @@ exports.requestFollow = async function (req,res) {
         const requestFollowParams = [userIdx,followUserIdx];
         //비공개 유저인 경우
         if(isPrivateUser[0].exist === 1){
-            const requestFollowPrivateUser = await followDao.requestFollowPrivateUser(requestFollowParams);
+            const requestFollowPrivateUser = await followDao.requestFollowPrivateUser(userIdx,followUserIdx);
             if(requestFollowPrivateUser === 'N') return res.json({follow : "N", isSucess : true, code : 201, message : "팔로우 취소"});
             else return res.json({followRequestId : requestFollowPrivateUser, isSucess : true, code : 202, message : "팔로우 요청"});
 
         }
         else if(isPrivateUser[0].exist ===0) {
-            const requestFollowRows = await followDao.requestFollow(requestFollowParams);
+            const requestFollowRows = await followDao.requestFollow(userIdx,followUserIdx);
             if(requestFollowRows === 'Y') return res.json({follow : "팔로잉",isSucess : true, code :200, message : "팔로우 성공"});
+            else if(requestFollowRows === 'N') return res.json({follow : "팔로잉 취소",isSucess : true, code :201, message : "팔로우 취소"});
         }
 
     } catch (error) {
@@ -80,7 +81,7 @@ exports.acceptFollow = async function (req,res) {
         const acceptFollowParams = [followRequestId];
         const selectRequestFollowbyUserIdRows = await followDao.selectRequestFollowbyUserId(acceptFollowParams);
         if(userIdx === selectRequestFollowbyUserIdRows){
-            const acceptFollowRows = await followDao.acceptFollow(acceptFollowParams);
+            const acceptFollowRows = await followDao.acceptFollow(followRequestId);
             //console.log(acceptFollowRows);
             if(acceptFollowRows.length<1){
                 return res.json({isSucess : false, code :400, message : "요청이 없습니다."});
@@ -223,7 +224,7 @@ exports.cancelFollowing = async function (req,res) {
         else{
             if(isValidFollowParams[0] === userId){
                 const cancelFollowingParams = [userId,userIdx];
-                const cancelFollowingRows = await followDao.cancelFollowing(cancelFollowingParams);
+                const cancelFollowingRows = await followDao.cancelFollowing(userId,userIdx);
                 return res.json({isSucess : true, code : 200, message : "팔로잉 취소"})
                 
             }
