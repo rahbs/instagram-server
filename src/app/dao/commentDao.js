@@ -152,7 +152,7 @@ async function likeComment(userIdx,commentID) {
       const [searchlikeCommentRows]= await connection.query(searchlikeCommentQuery, likeCommentParams);
     
 
-    const insertAcitivityQuery = `insert into activity(userIdx, userId, writing, user_,profileImgUrl,feedId,commentId,commentlike) values(?,?,?,?,?,?,'Y');`;
+    const insertAcitivityQuery = `insert into activity(userIdx, userId, writing, user_,profileImgUrl,commentId,commentlike) values(?,?,?,?,?,?,'Y');`;
     const selectUserIdQuery = `select userId from user where userIdx = ?;`;
     const [selectUserIdRows] = await connection.query(selectUserIdQuery,userIdx);
     const userId = selectUserIdRows[0].userId;
@@ -175,7 +175,7 @@ async function likeComment(userIdx,commentID) {
       }
       else if(searchlikeCommentRows[0].isLiked === 'Y'){
         const [likeCommentRows] = await connection.query(likeCommenthateQuery, likeCommentParams);
-        const updateActivityQuery = `update activity set commentlike ='N' where commentId = ?`;
+        const updateActivityQuery = `update activity set commentlike ='N', isDeleted = 'Y' where commentId = ? && commentLike = 'Y';`;
         const updateActivityRows = await connection.query(updateActivityQuery,commentID);
         await connection.commit();
         return 'N'
@@ -188,13 +188,14 @@ async function likeComment(userIdx,commentID) {
           await connection.commit();
           return 'Y'
         }
-        const updateActivityQuery = `update activity set commentlike ='Y' where commentId = ?`;
+        const updateActivityQuery = `update activity set commentlike ='Y', isDeleted = 'N' where commentId = ? && commentLike = 'N';`;
         const updateActivityRows = await connection.query(updateActivityQuery,commentID);
         await connection.commit();
         return 'Y'
       }   
     return null;
     } catch (error) {
+      console.log(error);
       logger.error(`App - likeComment function error\n: ${JSON.stringify(error)}`);
       await connection.rollback();
     }finally{
@@ -235,7 +236,7 @@ async function likeFeed(userIdx,feedID) {
       }
       else if(searchlikeFeedRows[0].isLiked === 'Y'){
         const [likeFeedRows] = await connection.query(likeFeedhateQuery, likeFeedParams);
-        const updateActivityQuery = `update activity set feedlike ='N' where feedId = ?`;
+        const updateActivityQuery = `update activity set feedlike ='N', isDeleted = 'Y' where feedId = ? && isDeleted = 'N';`;
         const updateActivityRows = await connection.query(updateActivityQuery,feedID);
         await connection.commit();
         return 'N'
@@ -248,7 +249,7 @@ async function likeFeed(userIdx,feedID) {
           await connection.commit();
           return 'Y'
         }
-        const updateActivityQuery = `update activity set feedlike ='Y' where feedId = ?`;
+        const updateActivityQuery = `update activity set feedlike ='Y', isDeleted = 'N' where feedId = ? && isDeleted = 'Y';`;
         const updateActivityRows = await connection.query(updateActivityQuery,feedID);
           await connection.commit();
         return 'Y'

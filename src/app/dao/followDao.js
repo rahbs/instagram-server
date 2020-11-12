@@ -56,7 +56,6 @@ async function requestFollow(userIdx,followUserIdx) {
         return 'Y'
     }
     } catch (error) {
-        console.log(error);
         logger.error(`App - requestFollow function error\n: ${JSON.stringify(error)}`);
         await connection.rollback();
     } finally{
@@ -151,18 +150,41 @@ async function acceptFollow(acceptFollowParams) {
 
     const findIdQuery = `select requestingUserIdx as ingId, requestedUserIdx as edId from followRequest where id=?`;
 
-    const updateActivityQuery = `update activity set isDeleted = 'Y' where followRequestId = ?;`;
-
+    
     try {
         await connection.beginTransaction();
         const [acceptFollowRows] = await connection.query(acceptFollowQuery,acceptFollowParams);
         const [findIdQueryRows] = await connection.query(findIdQuery,acceptFollowParams);
         requestFollowParams = [findIdQueryRows[0].ingId,findIdQueryRows[0].edId];
         const [selectFollowRows] = await connection.query(selectFollowQuery,requestFollowParams);
+
+
+        const insertAcitivityQuery = `insert into activity(userIdx, userId, writing, user_,profileImgUrl,followingUserIdx,followedUserIdx) values(?,?,?,?,?,?,?);`;
+        const selectUserIdQuery = `select userId from user where userIdx = ?;`;
+        const [selectUserIdRows] = await connection.query(selectUserIdQuery,findIdQueryRows[0].ingId);
+        const userId = selectUserIdRows[0].userId;
+        //const selectUserQuery = `select followingUserIdx from follow where followingUserIdx = ? && followedUserIdx = ?;`;
+        //const selectUserParams = [followUserIdx,userIdx];
+        //const [selectUserRows] = await connection.query(selectUserQuery,);
+        const user_ = findIdQueryRows[0].edId;
+        const writing = userId+"님이 회원님을 팔로우하기 시작했습니다.:\n";
+        const profileImgUrlQuery =`select profileImgUrl from user where userIdx=?;`; 
+        const [profileImgUrlRows] = await connection.query(profileImgUrlQuery,findIdQueryRows[0].ingId);
+        const profileImgUrl = profileImgUrlRows[0].profileImgUrl;
+
+
         if(selectFollowRows.length < 1){
             const [requestFollowRows] = await connection.query(requestFollowQuery,requestFollowParams);
+            const insertAcitivityParams = [findIdQueryRows[0].ingId,userId,writing,user_,profileImgUrl,findIdQueryRows[0].ingId,findIdQueryRows[0].edId];
+            const [insertAcitivityRows] = await connection.query(insertAcitivityQuery,insertAcitivityParams);
+            console.log(insertAcitivityRows);
+            
         } else if(selectFollowRows[0].follow === 'N'){
             const [requestFollowRows] = await connection.query(requestFollowagainQuery,requestFollowParams);
+
+            const updateActivityQuery = `update activity set isDeleted = 'Y' where followingUserIdx =? &&followedUserIdx=?;`;
+            const updateActivityParams = [findIdQueryRows[0].ingId,findIdQueryRows[0].edId];
+            const updateActivityRows = await connection.query(updateActivityQuery,updateActivityParams);
         }
         await connection.commit();
         return acceptFollowRows;
@@ -270,19 +292,33 @@ async function hideFeedOrStory(kind,userIdx,userId){
     return ;
 }
 //팔로우 취소
-async function cancelFollowing(cancelFollowParams) {
+async function cancelFollowing(userId,userIdx) {
     const connection = await pool.getConnection(async (conn) => conn);
-    const selectFollowQuery = `select follow from follow where followedUserIdx = ? && followingUserIdx = ?;`;
-    const [selectFollowRows] = await connection.query(selectFollowQuery,cancelFollowParams);
-    if(selectFollowRows.length < 1){
+    const cancelFollowParams = [userId,userIdx];
+    try {
+        await connection.beginTransaction();
+        const selectFollowQuery = `select follow from follow where followedUserIdx = ? && followingUserIdx = ?;`;
+        const [selectFollowRows] = await connection.query(selectFollowQuery,cancelFollowParams);
+        if(selectFollowRows.length < 1){
 
+        }
+        else{
+            const cancelFollowQuery = `update follow set follow = 'N' where followedUserIdx = ? && followingUserIdx = ?;`;
+            const [cancelFollowRows] = await connection.query(cancelFollowQuery,cancelFollowParams);
+
+            const updateActivityQuery = `update activity set isDeleted = 'Y' where followingUserIdx =? &&followedUserIdx=?;`;
+            const updateActivityParams = [userIdx,userId];
+            const updateActivityRows = await connection.query(updateActivityQuery,updateActivityParams);
+            await connection.commit();
+            return cancelFollowRows;
+        }
+    } catch (error) {
+        logger.error(`App - cancelFollowing Transaction Query error\n: ${JSON.stringify(error)}`);
+        await connection.rollback()
+    } finally{
+        connection.release();
     }
-    else{
-        const cancelFollowQuery = `update follow set follow = 'N' where followedUserIdx = ? && followingUserIdx = ?;`;
-        const [cancelFollowRows] = await connection.query(cancelFollowQuery,cancelFollowParams);
-        connection.release();    
-        return cancelFollowRows;
-    }
+    
 }
 
 //팔로워 삭제

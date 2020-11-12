@@ -224,7 +224,7 @@ exports.cancelFollowing = async function (req,res) {
         else{
             if(isValidFollowParams[0] === userId){
                 const cancelFollowingParams = [userId,userIdx];
-                const cancelFollowingRows = await followDao.cancelFollowing(cancelFollowingParams);
+                const cancelFollowingRows = await followDao.cancelFollowing(userId,userIdx);
                 return res.json({isSucess : true, code : 200, message : "팔로잉 취소"})
                 
             }
