@@ -2,7 +2,7 @@ const { pool } = require("../../../config/database");
 
 
 //팔로우 요청
-async function selectActivity(userIdx) {
+async function selectActivity(userIdx,limitStart,limitCount) {
     const connection = await pool.getConnection(async (conn) => conn);
     try {
         const selectActivityQuery = `select userIdx,profileImgUrl,writing,
@@ -20,11 +20,11 @@ async function selectActivity(userIdx) {
                   end as created,
         feedId,commentId from activity
  where isDeleted = 'N'&& user_ = ?
- order by createdAt desc;`;
-        const [selectActivityRows] = await connection.query(selectActivityQuery,userIdx);
+ order by createdAt desc limit ?,?;`;
+ const params = [userIdx,Number(limitStart),Number(limitCount)];
+        const [selectActivityRows] = await connection.query(selectActivityQuery,params);
         return selectActivityRows;
     } catch (error) {
-        console.log(error);
         logger.error(`App - selectActivity function error\n: ${JSON.stringify(error)}`);
     } finally{
         connection.release();

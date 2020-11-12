@@ -5,12 +5,12 @@ const activityDao = require('../dao/activityDao');
 const userDao = require('../dao/userDao');
 
 exports.selectActivity = async function (req, res) {
-
+    const limitStart = req.query.limitStart;
+    const limitCount = req.query.limitCount;
     try {
         const userIdx = req.verifiedToken.id;
         
-        const selectActivityRows = await activityDao.selectActivity(userIdx);
-        console.log(selectActivityRows);
+        const selectActivityRows = await activityDao.selectActivity(userIdx,limitStart,limitCount);
         return res.json({
             list : selectActivityRows,
             isSuccess: true,
