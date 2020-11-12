@@ -122,16 +122,16 @@ exports.getFeeds = async function (req, res){
 exports.deleteFeed = async function (req, res){
     const userIdx = req.verifiedToken.id; // 현재 사용자의 userIdx
     const feedId = req.params['feedId']; // path variable로 들어온 feedId
-
     // path variable로 들어온 feedId가 존재하는 feedId인지 체크
-    // const [isExistingFeedId] = await feedDao.isExistingFeedId(feedId);
-    // if(!isExistingFeedId[0].exist){
-    //     return res.json({
-    //         isSuccess: false,
-    //         code: 300,
-    //         message: "존재하지 않는 피드입니다."
-    //     });
-    // }
+    const [isExistingFeedId] = await feedDao.checkFeedId(feedId);
+    
+    if(!isExistingFeedId[0].exist){
+        return res.json({
+            isSuccess: false,
+            code: 300,
+            message: "존재하지 않는 피드입니다."
+        });
+    }
     // path variable로 들어온 feedId가 현재 로그인된 사용자의 피드인지 체크
     const [userIdxOfFeed] = await feedDao.getUserIdxOfFeed(feedId);
     if(userIdxOfFeed[0].userIdx != userIdx){

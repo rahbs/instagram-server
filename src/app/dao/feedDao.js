@@ -211,7 +211,7 @@ async function getFeeds(userIdx,selectedUserIdx){
     }    
 }
 //존재하는 feedId인지 체크
-async function isExistingfeedId(feedId){
+async function checkFeedId(feedId){
     const connection = await pool.getConnection(async (conn) => conn);
     try{
         const query = `
@@ -263,6 +263,6 @@ module.exports = {
     getUserFeedList,
     getFeeds,
     getUserIdxOfFeed,
-    isExistingfeedId,
+    checkFeedId,
     deleteFeed
 };
