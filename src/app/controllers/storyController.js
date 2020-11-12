@@ -55,3 +55,40 @@ exports.deleteStory = async function (req, res){
     return res.status(500).send(`Error: ${err.message}`);
     }
 };
+
+exports.getStoryDetail = async function (req, res){
+    const userIdx = req.verifiedToken.id;
+    const storyId = req.params['storyId'];
+    // path variable로 들어온 storyId가 존재하는 storyId인지 체크
+    const [isExistingStoryId] = await storyDao.checkStoryId(storyId);
+    if(!isExistingStoryId[0].exist){
+        return res.json({
+            isSuccess: false,
+            code: 300,
+            message: "존재하지 않는 스토리입니다."
+        });
+    }
+    // 팔로우하지 않고, 비공계 계정일 경우
+    const [userIdxOfStory] = await storyDao.getUserIdxOfStory(storyId);
+    const [isFollowing] = await userDao.isFollowing(userIdx,userIdxOfStory[0].userIdx);
+    const [isPrivateUserIdx] = await userDao.isPrivateUserIdx(userIdxOfStory[0].userIdx)
+    if(!isFollowing[0].exist && isPrivateUserIdx[0].exist){
+        return res.json({
+            isSuccess: false,
+            code: 301,
+            message: "사용자가 조회할 수 없는 스토리 입니다."
+        });
+    }
+    try{
+        const getStory = await storyDao.getStoryDetail(storyId);
+        return res.json({
+            result: getStory,
+            isSuccess: true,
+            code: 200,
+            message: "Story가 성공적으로 조회되었습니다."
+        });
+    } catch (err){
+    logger.error(`App - getStoryDetail Query error\n: ${err.message}`);
+    return res.status(500).send(`Error: ${err.message}`);
+    }
+};

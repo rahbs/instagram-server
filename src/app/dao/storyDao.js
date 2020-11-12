@@ -70,9 +70,24 @@ async function getUserIdxOfStory(storyId){
         connection.release();
     }
 }
+async function getStoryDetail(storyId){
+    const connection = await pool.getConnection(async (conn) => conn);
+    try{
+        const query = `select imgUrl from story_ where id = ? and isDeleted='N'`;
+        const [imgUrl] = await connection.query(query,[storyId]);
+        return imgUrl;
+    } catch(err){
+        console.log(err);
+    } finally{
+        connection.release();
+    }
+}
+
+
 module.exports = {
     uploadStory,
     deleteStory,
     getUserIdxOfStory,
-    checkStoryId
+    checkStoryId,
+    getStoryDetail
 };
