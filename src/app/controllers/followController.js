@@ -44,7 +44,8 @@ exports.requestFollow = async function (req,res) {
  **/
 exports.followList = async function (req,res) {
     try {
-        const userIdx = req.verifiedToken.id;
+        req.verifiedToken.id;
+        const userIdx = req.params['userIdx'];
         const followType = req.query.follow;
         const limitStart = req.query.limitStart;
         const limitCount = req.query.limitCount;
