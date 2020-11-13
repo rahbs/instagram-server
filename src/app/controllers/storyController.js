@@ -119,3 +119,44 @@ exports.getStoryUsers = async function (req, res){
     return res.status(500).send(`Error: ${err.message}`);
     }
 };
+
+exports.getStoryReaders = async function (req, res){
+    const userIdx = req.verifiedToken.id;
+    const storyId = req.params['storyId'];
+    // path variable로 들어온 storyId가 존재하는 storyId인지 체크
+    const [isExistingStoryId] = await storyDao.checkStoryId(storyId);
+    if(!isExistingStoryId[0].exist){
+        return res.json({
+            isSuccess: false,
+            code: 300,
+            message: "존재하지 않는 스토리입니다."
+        });
+    }
+    // 내 스토리가 아닌 경우
+
+    //24시간이 지난 스토리인 경우
+
+    try{
+        const myStoryImgURl = await storyDao.getStoryImgUrl(storyId);
+        const storyReaders = await storyDao.getStoryReaders(storyId);
+        
+        let readers = []
+        for (storyReader of storyReaders){
+            let storyStatus = await storyDao.getStoryStatus(userIdx,storyReader.userIdx);
+            reader = {storyReader, storyStatus};
+            readers.push(reader);
+        }
+        const storyImgUrl = myStoryImgURl[0].storyImgUrl;
+        result = {storyImgUrl, readers};
+        return res.json({
+            result: result,
+            isSuccess: true,
+            code: 200,
+            message: "스토리 읽은사람 목록이 성공적으로 조회되었습니다."
+        });
+    } catch (err){
+    logger.error(`App - getStoryUsers Query error\n: ${err.message}`);
+    return res.status(500).send(`Error: ${err.message}`);
+    }
+};
+

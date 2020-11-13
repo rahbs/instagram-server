@@ -135,6 +135,60 @@ async function getStoryDetail(storyId,userIdx){
         connection.release();
     }
 }
+async function getStoryImgUrl(storyId){
+    const connection = await pool.getConnection(async (conn) => conn);
+    try{
+        const query = `select imgUrl as storyImgUrl from story_ where id = ?;`;
+        const [res] = await connection.query(query,[storyId]);
+        return res;
+
+    } catch(err){
+        console.log(err);
+    } finally{
+        connection.release();
+    }
+}
+async function getStoryReaders(storyId){
+    const connection = await pool.getConnection(async (conn) => conn);
+    try{
+        const query = `select user.userIdx, userId, name, profileImgUrl
+                        from viewStory
+                        join user
+                        on viewStory.userIdx = user.userIdx
+                        where storyId = ?;`;
+        const [res] = await connection.query(query,[storyId]);
+        return res;
+
+    } catch(err){
+        console.log(err);
+    } finally{
+        connection.release();
+    }
+}
+// userIdxA가 userIdxB의 스토리를 모두 확인했는지 체크 (볼 스토리가 남아있으면:true 없으면:false)
+async function getStoryStatus(userIdxA,userIdxB){
+    const connection = await pool.getConnection(async (conn) => conn);
+    try{
+        const query1 = `select count(*) as seenStories
+                        from viewStory
+                        join story_
+                        on viewStory.storyId = story_.id
+                        where story_.userIdx = 29 and viewStory.userIdx = 27;`;
+        const query2 = `select count(*) as stories from story_ where userIdx = 29`
+        
+        const [seenStoryCount] = await connection.query(query1,[userIdxB,userIdxA]);
+        const [storyCount] = await connection.query(query2,[userIdxB])
+        if(seenStoryCount[0].seenStories < storyCount[0].stories )
+            return true
+        else return false
+    } catch(err){
+        console.log(err);
+    } finally{
+        connection.release();
+    }
+}
+
+
 // async function getStoryUsers(userIdx){
     // const connection = await pool.getConnection(async (conn) => conn);
     // try{
@@ -149,6 +203,7 @@ async function getStoryDetail(storyId,userIdx){
     // }
 // }
 
+
 module.exports = {
     uploadStory,
     deleteStory,
@@ -157,5 +212,8 @@ module.exports = {
     getStoryDetail,
     isValidStory,
     checkReadStory,
+    getStoryImgUrl,
+    getStoryReaders,
+    getStoryStatus
     //getStoryUsers
 };

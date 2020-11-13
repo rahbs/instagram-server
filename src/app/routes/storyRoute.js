@@ -6,4 +6,5 @@ module.exports = function(app){
     app.delete('/story/:storyId',jwtMiddleware, story.deleteStory);
     app.get('/story/:storyId',jwtMiddleware, story.getStoryDetail);
     app.get('/story/users',jwtMiddleware, story.getStoryUsers);
+    app.get('/story/:storyId/readers',jwtMiddleware, story.getStoryReaders);
 };
