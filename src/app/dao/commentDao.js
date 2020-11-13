@@ -108,14 +108,14 @@ async function insertComment(feedId,userIdx,comment) {
     
     
 
-    const insertAcitivityQuery = `insert into activity(userIdx, userId, writing, user_,profileImgUrl,commentId values(?,?,?,?,?,?);`;
+    const insertAcitivityQuery = `insert into activity(userIdx, userId, writing, user_,profileImgUrl,commentId) values(?,?,?,?,?,?);`;
     const selectUserIdQuery = `select userId from user where userIdx = ?;`;
     const [selectUserIdRows] = await connection.query(selectUserIdQuery,userIdx);
     const userId = selectUserIdRows[0].userId;
     const selectUserQuery = `select userIdx from feed where Id = ?;`;
     const [selectUserRows] = await connection.query(selectUserQuery,feedId);
     const user_ = selectUserRows[0].userIdx;
-    const writing = userId+"님이 댓글을 남겼습니다:\n"+comment;
+    const writing = userId+"님이 댓글을 남겼습니다: \n "+comment;
     const profileImgUrlQuery =`select profileImgUrl from user where userIdx=?;`; 
     const [profileImgUrlRows] = await connection.query(profileImgUrlQuery,userIdx);
     const profileImgUrl = profileImgUrlRows[0].profileImgUrl;
@@ -127,8 +127,9 @@ async function insertComment(feedId,userIdx,comment) {
     await connection.commit();
     return Rows;
   } catch (error) {
+    console.log(error);
     logger.error(`App - insertComment function error\n: ${JSON.stringify(error)}`);
-    //console.log(error);
+    
     await connection.rollback();
   }finally{
     connection.release();

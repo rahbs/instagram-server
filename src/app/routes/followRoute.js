@@ -4,7 +4,7 @@ module.exports = function(app){
 
     
     app.route('/followRequest').post(jwtMiddleware,follow.requestFollow);
-    app.get('/user/:userIdx/follow',jwtMiddleware,follow.followList);
+    app.get('/user/follow',jwtMiddleware,follow.followList);
     app.route('/followAccept/:followRequestId').post(jwtMiddleware,follow.acceptFollow);
     app.delete('/followAccept/:followRequestId',jwtMiddleware,follow.refuseFollow);
     app.route('/user/:userIdx/closeFriend').post(jwtMiddleware,follow.setCloseFriend);

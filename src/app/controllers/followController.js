@@ -179,7 +179,7 @@ exports.hideFeedOrStory = async function (req,res) {
             return res.json({isSucess : false, code : 300, message : "팔로워가 아닌 유저입니다."});
         }
         else{
-            if(isValidFollowParams[0] === userIdx){
+            
                 const hideFeedOrStoryParams = [kind,userIdx,userId];
                 const hideFeedOrStoryRows = await followDao.hideFeedOrStory(kind,userIdx,userId);
                 if(hideFeedOrStoryRows === 'SY'){
@@ -196,12 +196,7 @@ exports.hideFeedOrStory = async function (req,res) {
                 }
                 else{
                     return res.json({isSucess : false, code : 301, message : "유효하지 않은 쿼리스트링입니다."});
-                }
-                
-            }
-            else{
-                return res.json({isSucess : false, code : 402, message : "권한이 없습니다."})
-            }
+                } 
         }
 
     } catch (error) {
@@ -249,21 +244,16 @@ exports.cancelFollower = async function (req,res) {
     const userId = req.params['userIdx'];
     try {
         const userIdx = req.verifiedToken.id;
-        const isValidFollowParams = [userId,userIdx];
+        const isValidFollowParams = [userIdx,userId];
         const isValidFollowRows = await followDao.isValidFollow(isValidFollowParams);
         if(isValidFollowRows === 0){
             return res.json({isSucess : false, code : 300, message : "팔로우 상태가 아닌 유저입니다."});
         }
         else{
-            if(isValidFollowParams[0] === userId){
                 const cancelFollowerParams = [userIdx,userId];
                 const cancelFollowerRows = await followDao.cancelFollower(cancelFollowerParams);
                 return res.json({isSucess : true, code : 200, message : "팔로워 삭제"})
-                
-            }
-            else{
-                return res.json({isSucess : false, code : 402, message : "권한이 없습니다."})
-            }
+            
         }
 
     } catch (error) {
@@ -286,7 +276,7 @@ exports.userBlock = async function (req,res) {
             return res.json({isSucess : false, code : 300, message : "팔로우 상태가 아닌 유저입니다."});
         }
         else{
-            if(isValidFollowParams[0] === userIdx){
+            
                 const userBlockParams = [userIdx,userId];
                 const userBlockRows = await followDao.userBlock(userBlockParams);
                 if(userBlockRows === 'Y'){
@@ -296,10 +286,8 @@ exports.userBlock = async function (req,res) {
                     return res.json({isSucess : true, code : 201, message : "차단 취소"});
                 }
                 
-            }
-            else{
-                return res.json({isSucess : false, code : 402, message : "권한이 없습니다."})
-            }
+            
+            
         }
     } catch (error) {
         logger.error(`App - userBlock Query error\n: ${JSON.stringify(error)}`);
