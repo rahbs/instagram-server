@@ -244,21 +244,16 @@ exports.cancelFollower = async function (req,res) {
     const userId = req.params['userIdx'];
     try {
         const userIdx = req.verifiedToken.id;
-        const isValidFollowParams = [userId,userIdx];
+        const isValidFollowParams = [userIdx,userId];
         const isValidFollowRows = await followDao.isValidFollow(isValidFollowParams);
         if(isValidFollowRows === 0){
             return res.json({isSucess : false, code : 300, message : "팔로우 상태가 아닌 유저입니다."});
         }
         else{
-            if(isValidFollowParams[0] === userId){
                 const cancelFollowerParams = [userIdx,userId];
                 const cancelFollowerRows = await followDao.cancelFollower(cancelFollowerParams);
                 return res.json({isSucess : true, code : 200, message : "팔로워 삭제"})
-                
-            }
-            else{
-                return res.json({isSucess : false, code : 402, message : "권한이 없습니다."})
-            }
+            
         }
 
     } catch (error) {
