@@ -115,7 +115,7 @@ async function insertComment(feedId,userIdx,comment) {
     const selectUserQuery = `select userIdx from feed where Id = ?;`;
     const [selectUserRows] = await connection.query(selectUserQuery,feedId);
     const user_ = selectUserRows[0].userIdx;
-    const writing = userId+"님이 댓글을 남겼습니다:  "+comment;
+    const writing = userId+"님이 댓글을 남겼습니다: \n "+comment;
     const profileImgUrlQuery =`select profileImgUrl from user where userIdx=?;`; 
     const [profileImgUrlRows] = await connection.query(profileImgUrlQuery,userIdx);
     const profileImgUrl = profileImgUrlRows[0].profileImgUrl;
