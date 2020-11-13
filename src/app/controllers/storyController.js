@@ -102,3 +102,20 @@ exports.getStoryDetail = async function (req, res){
     return res.status(500).send(`Error: ${err.message}`);
     }
 };
+
+exports.getStoryUsers = async function (req, res){
+    const userIdx = req.verifiedToken.id;
+ 
+    try{
+        //const getStoryUsers = await storyDao.getStoryUsers(userIdx);
+        return res.json({
+            //result: getStoryUsers,
+            isSuccess: true,
+            code: 200,
+            message: "Story가 성공적으로 조회되었습니다."
+        });
+    } catch (err){
+    logger.error(`App - getStoryUsers Query error\n: ${err.message}`);
+    return res.status(500).send(`Error: ${err.message}`);
+    }
+};

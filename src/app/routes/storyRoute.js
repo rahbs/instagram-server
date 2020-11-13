@@ -5,4 +5,5 @@ module.exports = function(app){
     app.route('/story').post(jwtMiddleware,story.uploadStory);
     app.delete('/story/:storyId',jwtMiddleware, story.deleteStory);
     app.get('/story/:storyId',jwtMiddleware, story.getStoryDetail);
+    app.get('/story/users',jwtMiddleware, story.getStoryUsers);
 };

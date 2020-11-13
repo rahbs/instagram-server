@@ -105,19 +105,20 @@ async function getStoryDetail(storyId,userIdx){
         // START TRANSACTION
         await connection.beginTransaction(); 
         
-        const getStoryDetailquery = `select imgUrl, userId, profileImgUrl,
+        const getStoryDetailquery = `select user.userIdx, imgUrl, userId, profileImgUrl,
                             CASE
                                 WHEN TIMESTAMPDIFF(minute,story_.createdAt,now()) < 60
                                 THEN CONCAT(TIMESTAMPDIFF(minute,story_.createdAt,now()),'분')
                                 ELSE CONCAT(TIMESTAMPDIFF(hour,story_.createdAt,now()),'시간')
-                            END AS time
+                            END AS time,
+                            ?-1 as previousStoryId, ?+1 as nextStoryId
                         from user
                         join story_
                         on user.userIdx = story_.userIdx
                         where user.isDeleted = 'N' and story_.isDeleted='N' and story_.id = ?;`;
         const updateStoryViewquery = 'INSERT INTO viewStory(storyId, userIdx) VALUES(?,?);';
 
-        const [imgUrl] = await connection.query(getStoryDetailquery,[storyId]);
+        const [imgUrl] = await connection.query(getStoryDetailquery,[storyId,storyId,storyId]);
         //이미 읽은 스토리이면, 업데이트 안한다.
         const [checkStory] = await checkReadStory(storyId,userIdx);
         if(!checkStory[0].exist)
@@ -134,7 +135,19 @@ async function getStoryDetail(storyId,userIdx){
         connection.release();
     }
 }
+// async function getStoryUsers(userIdx){
+    // const connection = await pool.getConnection(async (conn) => conn);
+    // try{
+    //     const query1 = `select exists(select storyId from viewStory where storyId = ? and userIdx =?) as exist;`;
+    //     const res = await connection.query(query,[storyId, userIdx]);
+    //     return res;
 
+    // } catch(err){
+    //     console.log(err);
+    // } finally{
+    //     connection.release();
+    // }
+// }
 
 module.exports = {
     uploadStory,
@@ -143,5 +156,6 @@ module.exports = {
     checkStoryId,
     getStoryDetail,
     isValidStory,
-    checkReadStory
+    checkReadStory,
+    //getStoryUsers
 };
