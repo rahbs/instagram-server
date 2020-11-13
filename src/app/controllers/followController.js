@@ -179,7 +179,7 @@ exports.hideFeedOrStory = async function (req,res) {
             return res.json({isSucess : false, code : 300, message : "팔로워가 아닌 유저입니다."});
         }
         else{
-            if(isValidFollowParams[0] === userIdx){
+            
                 const hideFeedOrStoryParams = [kind,userIdx,userId];
                 const hideFeedOrStoryRows = await followDao.hideFeedOrStory(kind,userIdx,userId);
                 if(hideFeedOrStoryRows === 'SY'){
@@ -196,12 +196,7 @@ exports.hideFeedOrStory = async function (req,res) {
                 }
                 else{
                     return res.json({isSucess : false, code : 301, message : "유효하지 않은 쿼리스트링입니다."});
-                }
-                
-            }
-            else{
-                return res.json({isSucess : false, code : 402, message : "권한이 없습니다."})
-            }
+                } 
         }
 
     } catch (error) {
