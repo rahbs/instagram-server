@@ -189,19 +189,19 @@ async function getStoryStatus(userIdxA,userIdxB){
 }
 
 
-// async function getStoryUsers(userIdx){
-    // const connection = await pool.getConnection(async (conn) => conn);
-    // try{
-    //     const query1 = `select exists(select storyId from viewStory where storyId = ? and userIdx =?) as exist;`;
-    //     const res = await connection.query(query,[storyId, userIdx]);
-    //     return res;
+async function getStoryUsers(userIdx){
+    const connection = await pool.getConnection(async (conn) => conn);
+    try{
+        const query1 = `select exists(select storyId from viewStory where storyId = ? and userIdx =?) as exist;`;
+        const res = await connection.query(query1,[storyId, userIdx]);
+        return res;
 
-    // } catch(err){
-    //     console.log(err);
-    // } finally{
-    //     connection.release();
-    // }
-// }
+    } catch(err){
+        console.log(err);
+    } finally{
+        connection.release();
+    }
+}
 
 
 module.exports = {
@@ -214,6 +214,6 @@ module.exports = {
     checkReadStory,
     getStoryImgUrl,
     getStoryReaders,
-    getStoryStatus
-    //getStoryUsers
+    getStoryStatus,
+    getStoryUsers
 };

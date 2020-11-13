@@ -105,11 +105,10 @@ exports.getStoryDetail = async function (req, res){
 
 exports.getStoryUsers = async function (req, res){
     const userIdx = req.verifiedToken.id;
- 
     try{
-        //const getStoryUsers = await storyDao.getStoryUsers(userIdx);
+        const getStoryUsers = await storyDao.getStoryUsers(userIdx);
         return res.json({
-            //result: getStoryUsers,
+            result: getStoryUsers,
             isSuccess: true,
             code: 200,
             message: "Story가 성공적으로 조회되었습니다."
