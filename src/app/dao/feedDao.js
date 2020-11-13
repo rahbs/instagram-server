@@ -94,17 +94,19 @@ async function getUserFeedList(userIdx){
     const connection = await pool.getConnection(async (conn) => conn);
     try{
         const getUserFeedListQuery = `
-        SELECT feed.id as feedId, feedImgUrl,
-        CASE
-            WHEN count(*) > 1
-            THEN true
-            ELSE false
-            END AS isMultiple
-        FROM feed
-        JOIN feedImg
-        ON feed.id = feedImg.feedId
-        WHERE feed.userIdx = ? and feed.isDeleted = 'N'
-        GROUP by feed.id;
+        select *
+        from (SELECT feed.id as feedId, feedImgUrl,feed.createdAt as createdAt,
+                CASE
+                    WHEN count(*) > 1
+                    THEN true
+                    ELSE false
+                    END AS isMultiple
+                FROM feed
+                JOIN feedImg
+                ON feed.id = feedImg.feedId
+                WHERE feed.userIdx = ? and feed.isDeleted = 'N'
+                GROUP by feed.id) as userFeed
+                ORDER BY createdAt DESC;
                     `;
 
         const getUserFeedList = await connection.query(
