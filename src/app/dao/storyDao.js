@@ -192,8 +192,33 @@ async function getStoryStatus(userIdxA,userIdxB){
 async function getStoryUsers(userIdx){
     const connection = await pool.getConnection(async (conn) => conn);
     try{
-        const query1 = `select exists(select storyId from viewStory where storyId = ? and userIdx =?) as exist;`;
-        const res = await connection.query(query1,[storyId, userIdx]);
+        const query1 = `select  story_.id as storyId, profileImgUrl
+                        from story_
+                        join user
+                        on story_.userIdx = user.userIdx
+                        where user.userIdx = ?
+                        limit 1;`;
+        const query2 = `select user.userIdx, profileImgUrl, userId,story_.id as storyId from story_
+                        join
+                            (select followedUserIdx
+                            from follow
+                            where followingUserIdx = ?) as follow
+                        on follow.followedUserIdx = story_.userIdx
+                        join user
+                        on story_.userIdx = user.userIdx
+                        limit 1`;
+        
+        const [mystory] = await connection.query(query1,[userIdx]);
+        let [friendstories] = await connection.query(query2,[userIdx]);
+        
+        const myStoryStatus = await getStoryStatus(userIdx, userIdx);
+        mystory[0].storyStatus = myStoryStatus;  
+        myStory = mystory[0]
+        for (friendstory of friendstories){
+            let storyStatus = await getStoryStatus(userIdx, friendstory.userIdx);
+            friendstory.storyStatus = storyStatus;
+        }
+        res = {myStory, friendstories};
         return res;
 
     } catch(err){
