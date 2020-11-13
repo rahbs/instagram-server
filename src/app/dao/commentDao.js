@@ -127,7 +127,7 @@ async function insertComment(feedId,userIdx,comment) {
     await connection.commit();
     return Rows;
   } catch (error) {
-    //console.log(error);
+    console.log(error);
     logger.error(`App - insertComment function error\n: ${JSON.stringify(error)}`);
     
     await connection.rollback();

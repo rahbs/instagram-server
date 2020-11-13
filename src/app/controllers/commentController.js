@@ -85,6 +85,7 @@ exports.likeComment = async function (req, res) {
         else if(likeCommentRows === 'N') return res.json({like : "N", isSucess : true, code : 201, message : "좋아요 취소"});
         
     } catch (error) {
+        console.log(error);
         logger.error(`App - likeComment Query error\n: ${JSON.stringify(error)}`);
         connection.release();
             return false;
