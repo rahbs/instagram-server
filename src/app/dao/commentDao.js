@@ -38,10 +38,15 @@ limit ?,?;`;
     return false;
   }
 }
-async function commentUser(commentUserParams){
+async function commentUser(feedID){
   const connection = await pool.getConnection(async (conn) => conn);
   const commentUserQuery = `select profileImgUrl, userId, user.userIdx, caption from user
   inner join feed f on user.userIdx = f.userIdx where f.userIdx =? && f.id = ?;`;
+    
+    const findUserQuery = `select userIdx from feed where id =?;`;
+    const [findUserRow] = await.connection.query(findUserQuery,feedID);
+    const commentUserParams = [findUserRow[0].userIdx, feedID];
+    
   const [commentUserRows] = await connection.query(commentUserQuery,commentUserParams);
   connection.release;
   return commentUserRows[0]
