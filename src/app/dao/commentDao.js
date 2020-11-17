@@ -44,7 +44,7 @@ async function commentUser(feedID){
   inner join feed f on user.userIdx = f.userIdx where f.userIdx =? && f.id = ?;`;
     
     const findUserQuery = `select userIdx from feed where id =?;`;
-    const [findUserRow] = await.connection.query(findUserQuery,feedID);
+    const [findUserRow] = await connection.query(findUserQuery,feedID);
     const commentUserParams = [findUserRow[0].userIdx, feedID];
     
   const [commentUserRows] = await connection.query(commentUserQuery,commentUserParams);
