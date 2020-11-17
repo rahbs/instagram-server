@@ -33,6 +33,7 @@ limit ?,?;`;
     return [selectCommentByFeedIdRows]; 
     
   } catch (error) {
+      console.log(error);
     logger.error(`App - selectCommentByFeedId function error\n: ${JSON.stringify(error)}`);
     connection.release();
     return false;
