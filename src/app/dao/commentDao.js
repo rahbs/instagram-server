@@ -41,16 +41,23 @@ limit ?,?;`;
 }
 async function commentUser(feedID){
   const connection = await pool.getConnection(async (conn) => conn);
-  const commentUserQuery = `select profileImgUrl, userId, user.userIdx, caption from user
-  inner join feed f on user.userIdx = f.userIdx where f.userIdx =? && f.id = ?;`;
-    
-    const findUserQuery = `select userIdx from feed where id =?;`;
+  try {
+    const commentUserQuery = `select profileImgUrl, userId, user.userIdx, caption from user inner join feed f on user.userIdx = f.userIdx where f.id = ?;`;
+    const findUserQuery = `select userIdx from feed where id = ?;`;
     const [findUserRow] = await connection.query(findUserQuery,feedID);
-    const commentUserParams = [findUserRow[0].userIdx, feedID];
+    const commentUserParams = [feedID];
     
   const [commentUserRows] = await connection.query(commentUserQuery,commentUserParams);
-  connection.release;
+  connection.release();
   return commentUserRows[0]
+  } catch (error) {
+    console.log(error);
+    logger.error(`App - selectCommentByFeedId function error\n: ${JSON.stringify(error)}`);
+    connection.release();
+    return false;
+  }
+  
+  
 }
 
 //대댓글 상세보기
@@ -92,14 +99,7 @@ limit ?,?;`;
     return false;
   }
 }
-async function commentUser(commentUserParams){
-  const connection = await pool.getConnection(async (conn) => conn);
-  const commentUserQuery = `select profileImgUrl, userId, user.userIdx, caption from user
-  inner join feed f on user.userIdx = f.userIdx where f.userIdx =? && f.id = ?;`;
-  const [commentUserRows] = await connection.query(commentUserQuery,commentUserParams);
-  connection.release;
-  return commentUserRows[0]
-}
+
 // 댓글생성
 async function insertComment(feedId,userIdx,comment) {
   const connection = await pool.getConnection(async (conn) => conn);

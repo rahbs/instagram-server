@@ -20,7 +20,7 @@ exports.selectCommentList = async function (req, res) {
         const userID = req.verifiedToken.id;
         const selectCommentListParams = [feedID,limitStart,limitCount];
         const [selectCommentByFeedIdRows] = await commentDao.selectCommentByFeedId(selectCommentListParams);
-        const commentUserParams = [userIdx,feedID];
+        // const commentUserParams = [feedID];
         const commentUserRows = await commentDao.commentUser(feedID);
         return res.json({
             userFeed : commentUserRows,
