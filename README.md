@@ -10,11 +10,11 @@ Index	Method	URI	Description
 5	GET	/user-info	로그인된 user 정보 조회
 6	PATCH	/user-info	로그인된 user 정보 수정
 7	POST	/feed	피드 업로드
-8	GET	/users/{useridx}/feeds	해당 유저의 피드조회
-9	PATCH	/feeds/{feedid}	피드 수정
-10	DELETE	/feeds/{feedid}	피드 삭제
+8	GET	/users/{userIdx}/feeds	해당 유저의 피드조회
+9	PATCH	/feeds/{feedId}	피드 수정
+10	DELETE	/feeds/{feedId}	피드 삭제
 11	GET	/feeds	피드 목록 조회
-12	GET	/feeds/{feedid}	피드 상세 조회
+12	GET	/feeds/{feedId}	피드 상세 조회
 13	POST	/account-type	비공계 계정으로 전환/ 공계계정으로 전환
 14	GET	/account-type	비공계/ 공계계정 확인
 15	GET	/feed/{feedId}/comments?limitStart= & limitCount=	댓글 상세보기
@@ -38,7 +38,7 @@ Index	Method	URI	Description
 33	GET	/comment/{commentId}/recomment?limitStart= & limitCount=	대댓글 조회
 34	GET	/stories/uploaded/users	스토리를 올린 유저 목록 조회
 35	POST	/stories	스토리 업로드
-36	DELETE	/stories/{storyid}	스토리 삭제
-37	GET	/stories/{storyid}	스토리 상세보기
-38	GET	/stories/{storyid}/read/users	내 스토리 읽은사람 확인
+36	DELETE	/stories/{storyId}	스토리 삭제
+37	GET	/stories/{storyId}	스토리 상세보기
+38	GET	/stories/{storyId}/read/users	내 스토리 읽은사람 확인
 ```
