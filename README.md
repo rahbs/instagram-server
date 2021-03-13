@@ -1,6 +1,15 @@
 # instagram clone coding
 
-API 리스트
+## Tech stack
+### Server
+- OS : ubuntu18.04
+- WebServer : nginx1.14.0
+- Backend-language : nodejs8.10.0
+
+### DB
+- DataBase : mysql 5.7.21
+
+### API 리스트
 ```
 Index	Method	URI	Description
 1	GET	/test	test API (test 용)
