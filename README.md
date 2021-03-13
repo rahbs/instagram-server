@@ -9,7 +9,7 @@
 ### DB
 - DataBase : mysql 5.7.21
 
-### API 리스트
+## API 리스트
 ```
 Index	Method	URI	Description
 1	GET	/test	test API (test 용)
